@@ -52,6 +52,7 @@ public class Website extends AbstractVerticle {
                         sendbus(new FileParser(file.result().getBytes()).toJsonArray());
                         redirect(context, "/done.html");
                     } catch (ParserException e) {
+                        e.printStackTrace();
                         redirect(context, "/error.html");
                     }
                 });
@@ -62,9 +63,7 @@ public class Website extends AbstractVerticle {
     }
 
     private void sendbus(JsonArray list) {
-        for (int i = 0; i < list.size(); i++) {
-            vertx.eventBus().send(Configuration.BUS_TRANSACTIONS, list.getJsonObject(i));
-        }
+        vertx.eventBus().send(Configuration.BUS_TRANSACTIONS, list);
     }
 
     private void redirect(RoutingContext context, String uri) {

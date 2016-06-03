@@ -46,8 +46,8 @@ public class FileParser {
     private void readRows(XSSFSheet sheet, int offset) {
         String[] columns = getColumns(sheet.getRow(offset - 1));
 
-        for (int i = 1; i < rows; i++) {
-            list.add(getRow(columns, sheet.getRow(offset + i - 1)));
+        for (int i = offset; i < rows; i++) {
+            list.add(getRow(columns, sheet.getRow(i)));
         }
     }
 

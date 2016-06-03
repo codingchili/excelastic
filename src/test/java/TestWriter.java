@@ -2,6 +2,7 @@ import Controller.Website;
 import Model.Configuration;
 import Model.ElasticWriter;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -41,12 +42,12 @@ public class TestWriter {
         vertx.createHttpServer().requestHandler(request -> {
 
             request.bodyHandler(body -> {
-                context.assertEquals(true, body.toJsonObject().getBoolean("test"));
+                context.assertTrue(body.toString() != null);
                 async.complete();
             });
         }).listen(Configuration.ELASTIC_PORT);
 
-        vertx.eventBus().send(Configuration.BUS_TRANSACTIONS, new JsonObject().put("test", true));
+        vertx.eventBus().send(Configuration.BUS_TRANSACTIONS, new JsonArray().add(new JsonObject().put("test", true)));
     }
 
 }

@@ -14,7 +14,7 @@ public class TestConfiguration {
     @Test
     public void shouldLoadConfiguration(TestContext context) {
         context.assertEquals(Configuration.WEB_PORT, 8080);
-        context.assertEquals(Configuration.ELASTIC_INDEX, "transactions_v4");
+        context.assertEquals(Configuration.ELASTIC_INDEX, "transaction_v1");
         context.assertEquals(Configuration.ELASTIC_PORT, 9200);
         context.assertEquals(Configuration.ROW_OFFSET, 5);
     }

@@ -4,6 +4,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 /**
@@ -19,39 +20,38 @@ public class ElasticWriter extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> start) {
-        createIndex();
         processTransactions();
 
         start.complete();
     }
 
-    private void createIndex() {
-        vertx.createHttpClient().put(
-                Configuration.ELASTIC_PORT, "localhost",
-                Configuration.ELASTIC_INDEX + "/all/").handler(response -> {
-
-        }).end(template().encode());
-    }
-
-    private JsonObject template() {
-        return new JsonObject()
-                .put("template", new JsonObject()
-                        .put("mappings", new JsonObject()
-                                .put(Configuration.ELASTIC_INDEX, new JsonObject()
-                                        .put("properties", new JsonObject()
-                                                .put("Valutadatum", new JsonObject()
-                                                        .put("type", "date"))))));
-    }
-
     private void processTransactions() {
         vertx.eventBus().consumer(Configuration.BUS_TRANSACTIONS, handler -> {
-            JsonObject data = (JsonObject) handler.body();
+            JsonArray data = (JsonArray) handler.body();
 
             vertx.createHttpClient().post(
                     Configuration.ELASTIC_PORT, "localhost",
-                    Configuration.ELASTIC_INDEX + "/all/").handler(response -> {
+                    Configuration.ELASTIC_INDEX + "/_bulk").handler(response -> {
 
-            }).end(data.encode());
+                response.bodyHandler(body -> {
+                });
+
+            }).end(bulkQuery(data));
         });
+    }
+
+    private String bulkQuery(JsonArray list) {
+        String query = "";
+        JsonObject header = new JsonObject()
+                .put("index", new JsonObject()
+                        .put("_index", Configuration.ELASTIC_INDEX)
+                        .put("_type", "transactions"));
+
+        for (int i = 0; i < list.size(); i++) {
+            query += header.encode() + "\n";
+            query += list.getJsonObject(i).encode() + "\n";
+        }
+
+        return query;
     }
 }
