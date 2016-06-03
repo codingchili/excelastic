@@ -1,6 +1,5 @@
 package Model;
 
-import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.apache.poi.ss.usermodel.Cell;
@@ -9,6 +8,7 @@ import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import java.io.ByteArrayInputStream;
 import java.util.Iterator;
 
 /**
@@ -24,13 +24,10 @@ public class FileParser {
      * Parses the contents of an XLSX into JSON.
      *
      * @param bytes contains an XLSX file.
-     * @return selected fields as JSON object.
      */
     public FileParser(byte[] bytes) throws ParserException {
-        ByteOutputStream stream = new ByteOutputStream();
-        stream.write(bytes);
         try {
-            XSSFWorkbook workbook = new XSSFWorkbook(stream.newInputStream());
+            XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(bytes));
             XSSFSheet sheet = workbook.getSheetAt(0);
 
             this.columns = getColumnCount(sheet.getRow(ROW_OFFSET - 1));
