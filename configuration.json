@@ -1,0 +1,6 @@
+{
+  "row_offset": 5,
+  "web_port": 8080,
+  "elastic_port": 9200,
+  "elastic_index": "transactions_v4"
+}

@@ -1,0 +1,4 @@
+a, a:hover, a:visited, a:active {
+    text-decoration: none;
+    color: rgba(0, 0, 0, 0.0);
+}
