@@ -9,8 +9,8 @@
     </properties>
 
     <groupId>com.codingchili</groupId>
-    <artifactId>transaction-parser-es</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>excelastic</artifactId>
+    <version>1.0.0</version>
     <build>
         <plugins>
             <plugin>

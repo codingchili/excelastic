@@ -1,4 +1,3 @@
-import Controller.Website;
 import Model.Configuration;
 import Model.ElasticWriter;
 import io.vertx.core.Vertx;
@@ -47,7 +46,9 @@ public class TestWriter {
             });
         }).listen(Configuration.ELASTIC_PORT);
 
-        vertx.eventBus().send(Configuration.BUS_TRANSACTIONS, new JsonArray().add(new JsonObject().put("test", true)));
+        vertx.eventBus().send(Configuration.BUS_TRANSACTIONS, new JsonObject()
+                .put("items", new JsonArray().add(new JsonObject().put("test", true)))
+                .put("index", "test-index"));
     }
 
 }

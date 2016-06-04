@@ -10,9 +10,8 @@ import java.nio.file.Files;
  * @author Robin Duda
  */
 public class Configuration {
-    public static final int ROW_OFFSET = configuration().getInteger("row_offset");
     public static final int ELASTIC_PORT = configuration().getInteger("elastic_port");
-    public static final String ELASTIC_INDEX = configuration().getString("elastic_index");
+    public static final String ELASTIC_HOST = configuration().getString("elastic_host");
     public static final int WEB_PORT = configuration().getInteger("web_port");
     public static final String BUS_TRANSACTIONS = "bus.transactions";
     private static JsonObject configuration;

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Walldrain ~ </title>
+    <title>Excelastic ~ </title>
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
 </head>
@@ -12,19 +12,37 @@
 
 <div class="container">
     <div class="jumbotron">
-        <h1>Walldrain</h1>
-        <p>Convert transaction data from excel files into ElasticSearch indices~</p>
+        <h1>Excelastic</h1>
+        <p>Import XLSX files into ElasticSearch!</p>
     </div>
 
     <div class="col-xs-6 col-xs-offset-3">
         <div class="panel panel-info">
-            <div class="panel-heading">Upload transaction excel file!</div>
+            <div class="panel-heading">Upload XLSX File!</div>
             <div class="panel-body">
 
-                <form id="upload" enctype="multipart/form-data" method="POST" action="/api/upload">
-                    <label class="btn btn-block btn-info btn-file">
-                        UPLOAD <input type="file" id="file" name="file" style="display: none;">
-                    </label>
+                <form id="upload" class="form-horizontal" enctype="multipart/form-data" method="POST"
+                      action="/api/upload">
+                    <fieldset>
+
+                        <div class="form-group">
+                            <label for="index" class="col-lg-2 control-label">Index</label>
+                            <div class="col-lg-10">
+                                <input type="text" class="form-control" name="index" id="index"  placeholder="generate date">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="offset" class="col-lg-2 control-label">Column-row</label>
+                            <div class="col-lg-10">
+                                <input type="text" class="form-control" id="offset" name="offset" value="1">
+                            </div>
+                        </div>
+
+                        <label class="btn btn-block btn-info btn-file">
+                            UPLOAD <input type="file" id="file" name="file" style="display: none;">
+                        </label>
+                    </fieldset>
                 </form>
 
             </div>

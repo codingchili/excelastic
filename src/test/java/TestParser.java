@@ -1,4 +1,3 @@
-import Model.Configuration;
 import Model.FileParser;
 import Model.ParserException;
 import io.vertx.core.json.JsonArray;
@@ -17,11 +16,12 @@ import java.nio.file.Paths;
  */
 @RunWith(VertxUnitRunner.class)
 public class TestParser {
+    private static final int ROW_OFFSET = 5;
 
     @Test
     public void failParseInvalid() throws Exception {
         try {
-            FileParser parser = new FileParser(new byte[2048]);
+            new FileParser(new byte[2048], 5);
             throw new Exception("Should fail for invalid bytes.");
         } catch (ParserException ignored) {
         }
@@ -29,8 +29,10 @@ public class TestParser {
 
     @Test
     public void succeedParseValid(TestContext context) throws ParserException, IOException {
-        FileParser parser = new FileParser(Files.readAllBytes(Paths.get("src/test/java/test.xlsx")));
+        FileParser parser = new FileParser(Files.readAllBytes(Paths.get("src/test/java/test.xlsx")), ROW_OFFSET);
         JsonArray list = parser.toJsonArray();
+
+        context.assertEquals(2, list.size());
 
         for (int i = 0; i < list.size(); i++) {
             JsonObject json = list.getJsonObject(i);
@@ -38,9 +40,9 @@ public class TestParser {
             context.assertTrue(json.containsKey("Column 2"));
             context.assertTrue(json.containsKey("Column 3"));
 
-            context.assertEquals("cell " + (Configuration.ROW_OFFSET + 1 + i) + "." + 1, json.getString("Column 1"));
-            context.assertEquals("cell " + (Configuration.ROW_OFFSET + 1 + i) + "." + 2, json.getString("Column 2"));
-            context.assertEquals("cell " + (Configuration.ROW_OFFSET + 1 + i) + "." + 3, json.getString("Column 3"));
+            context.assertEquals("cell " + (ROW_OFFSET + 1 + i) + "." + 1, json.getString("Column 1"));
+            context.assertEquals("cell " + (ROW_OFFSET + 1 + i) + "." + 2, json.getString("Column 2"));
+            context.assertEquals("cell " + (ROW_OFFSET + 1 + i) + "." + 3, json.getString("Column 3"));
         }
     }
 

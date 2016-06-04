@@ -9,6 +9,10 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.junit.*;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 /**
  * @author Robin Duda
  */
@@ -40,15 +44,23 @@ public class TestWebsite {
         });
     }
 
-    @Ignore("Requires correct XLSX file to be posted.")
-    public void shouldSucceedUpload(TestContext context) {
+    @Ignore("Requires request to be formatted as form submission with file contents.")
+    public void shouldSucceedUpload(TestContext context) throws IOException {
         Async async = context.async();
 
         vertx.createHttpClient().post(Configuration.WEB_PORT, "localhost", "/api/upload", response -> {
             context.assertEquals(301, response.statusCode());
             context.assertEquals("/done.html", response.getHeader("location"));
             async.complete();
-        }).end();
+        }).putHeader("content-type", "multipart/form-data").end(new JsonObject()
+                .put("index", "test")
+                .put("offset", 5)
+                .put("file", getFileBytes())
+                .encode());
+    }
+
+    private byte[] getFileBytes() throws IOException {
+        return Files.readAllBytes(Paths.get("src/test/java/test.xlsx"));
     }
 
     @Test

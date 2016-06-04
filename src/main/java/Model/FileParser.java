@@ -15,25 +15,26 @@ import java.util.Iterator;
  * @author Robin Duda
  */
 public class FileParser {
-    private static final int ROW_OFFSET = Configuration.ROW_OFFSET;
     private JsonArray list = new JsonArray();
     private int columns;
-    private int rows;
+    private int items;
 
     /**
      * Parses the contents of an XLSX into JSON.
      *
-     * @param bytes contains an XLSX file.
+     * @param bytes  bytes of an XLSX file.
+     * @param offset row number containing column titles.
      */
-    public FileParser(byte[] bytes) throws ParserException {
+    public FileParser(byte[] bytes, int offset) throws ParserException {
+        offset -= 1; // convert excel row name to index.
         try {
             XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(bytes));
             XSSFSheet sheet = workbook.getSheetAt(0);
 
-            this.columns = getColumnCount(sheet.getRow(ROW_OFFSET - 1));
-            this.rows = getRowCount(sheet);
+            this.columns = getColumnCount(sheet.getRow(offset));
+            this.items = getItemCount(sheet, offset);
 
-            readRows(sheet, ROW_OFFSET);
+            readRows(sheet, offset);
         } catch (Exception e) {
             throw new ParserException();
         }
@@ -43,11 +44,11 @@ public class FileParser {
         return list;
     }
 
-    private void readRows(XSSFSheet sheet, int offset) {
-        String[] columns = getColumns(sheet.getRow(offset - 1));
+    private void readRows(XSSFSheet sheet, int columnRow) {
+        String[] columns = getColumns(sheet.getRow(columnRow));
 
-        for (int i = offset; i < rows; i++) {
-            list.add(getRow(columns, sheet.getRow(i)));
+        for (int i = 0; i < items; i++) {
+            list.add(getRow(columns, sheet.getRow(i + columnRow + 1)));
         }
     }
 
@@ -57,7 +58,6 @@ public class FileParser {
         for (int i = 0; i < titles.length; i++) {
             titles[i] = row.getCell(i).getStringCellValue();
         }
-
         return titles;
     }
 
@@ -77,13 +77,13 @@ public class FileParser {
         return count;
     }
 
-    private int getRowCount(XSSFSheet sheet) {
-        Iterator<Row> iterator = sheet.iterator();
+    private int getItemCount(XSSFSheet sheet, int offset) {
         int count = 0;
+        Row row = sheet.getRow(offset + 1);
 
-        while (iterator.hasNext()) {
-            iterator.next();
+        while (row != null) {
             count++;
+            row = sheet.getRow(offset + 1 + count);
         }
 
         return count;
@@ -104,7 +104,6 @@ public class FileParser {
             }
             index++;
         }
-
         return json;
     }
 }

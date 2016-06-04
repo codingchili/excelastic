@@ -27,24 +27,22 @@ public class ElasticWriter extends AbstractVerticle {
 
     private void processTransactions() {
         vertx.eventBus().consumer(Configuration.BUS_TRANSACTIONS, handler -> {
-            JsonArray data = (JsonArray) handler.body();
+            JsonObject data = (JsonObject) handler.body();
+            String index = data.getString("index");
 
             vertx.createHttpClient().post(
-                    Configuration.ELASTIC_PORT, "localhost",
-                    Configuration.ELASTIC_INDEX + "/_bulk").handler(response -> {
-
-                response.bodyHandler(body -> {
-                });
-
-            }).end(bulkQuery(data));
+                    Configuration.ELASTIC_PORT, Configuration.ELASTIC_HOST, index + "/_bulk")
+                    .handler(response -> response.bodyHandler(body -> {
+                    }))
+                    .end(bulkQuery(data.getJsonArray("items"), index));
         });
     }
 
-    private String bulkQuery(JsonArray list) {
+    private String bulkQuery(JsonArray list, String index) {
         String query = "";
         JsonObject header = new JsonObject()
                 .put("index", new JsonObject()
-                        .put("_index", Configuration.ELASTIC_INDEX)
+                        .put("_index", index)
                         .put("_type", "transactions"));
 
         for (int i = 0; i < list.size(); i++) {

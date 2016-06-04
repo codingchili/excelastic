@@ -3,11 +3,9 @@ package Controller;
 import Model.Configuration;
 import Model.FileParser;
 import Model.ParserException;
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Context;
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonArray;
+import io.vertx.core.*;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -49,10 +47,9 @@ public class Website extends AbstractVerticle {
 
                 vertx.fileSystem().readFile(upload.uploadedFileName(), file -> {
                     try {
-                        sendbus(new FileParser(file.result().getBytes()).toJsonArray());
+                        parse(file.result(), context.request().params());
                         redirect(context, "/done.html");
                     } catch (ParserException e) {
-                        e.printStackTrace();
                         redirect(context, "/error.html");
                     }
                 });
@@ -62,8 +59,24 @@ public class Website extends AbstractVerticle {
         });
     }
 
-    private void sendbus(JsonArray list) {
-        vertx.eventBus().send(Configuration.BUS_TRANSACTIONS, list);
+    private void parse(Buffer buffer, MultiMap params) throws ParserException {
+        try {
+            int columnRow = Integer.parseInt(params.get("offset"));
+            String index = params.get("index");
+            FileParser parser = new FileParser(buffer.getBytes(), columnRow);
+
+            JsonObject result = new JsonObject()
+                    .put("items", parser.toJsonArray())
+                    .put("index", index.toLowerCase());
+
+            sendOutput(result);
+        } catch (NumberFormatException e) {
+            throw new ParserException();
+        }
+    }
+
+    private void sendOutput(JsonObject data) {
+        vertx.eventBus().send(Configuration.BUS_TRANSACTIONS, data);
     }
 
     private void redirect(RoutingContext context, String uri) {
