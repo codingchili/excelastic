@@ -25,8 +25,8 @@ mvn clean package
 ├── configuration.json
 
 
-**web_port** port that the webserver will listen on.
+**web_port** (8080) port that the webserver will listen on. 
 
-**elastic_port** port that ElasticSearch listens to, host is set to localhost.
+**elastic_port** (9200) port that ElasticSearch listens to, host is set to localhost. 
 
-**elastic_host** address of the ElasticSearch server.
+**elastic_host** (localhost) address of the ElasticSearch server.
