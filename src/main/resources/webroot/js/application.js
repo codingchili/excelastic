@@ -4,5 +4,5 @@ $('#file').change(function () {
 
 $(document).ready(function () {
     var date = new Date();
-    $('#index').val(date.toLocaleString('en-us', {month: 'long'}) + '-' + date.getFullYear());
+    $('#index').val(date.toLocaleString('en-us', {month: 'long'}).toLowerCase() + '-' + date.getFullYear());
 });
