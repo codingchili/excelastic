@@ -10,7 +10,7 @@
 
     <groupId>com.codingchili</groupId>
     <artifactId>excelastic</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <build>
         <plugins>
             <plugin>
@@ -57,19 +57,25 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-core</artifactId>
-            <version>3.2.1</version>
+            <version>3.3.3</version>
         </dependency>
 
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-unit</artifactId>
-            <version>3.2.1</version>
+            <version>3.3.3</version>
         </dependency>
 
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-web</artifactId>
-            <version>3.2.1</version>
+            <version>3.3.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-web-templ-jade</artifactId>
+            <version>3.3.3</version>
         </dependency>
 
         <dependency>

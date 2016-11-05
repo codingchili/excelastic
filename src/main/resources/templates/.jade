@@ -1,0 +1,34 @@
+doctype html
+html(lang='en')
+    head
+        meta(charset='utf-8')
+        meta(http-equiv='X-UA-Compatible', content='IE=edge')
+        meta(name='viewport', content='width=device-width, initial-scale=1')
+        title Excelastic ~
+        link(href='/static/css/bootstrap.min.css', rel='stylesheet')
+        link(href='/static/css/style.css', rel='stylesheet')
+    body
+        .container
+            .jumbotron
+                h1 Excelastic
+                p Import XLSX files into ElasticSearch!
+            .col-xs-6.col-xs-offset-3
+                .panel.panel-info
+                    .panel-heading Upload XLSX File!
+                    .panel-body
+                        form#upload.form-horizontal(enctype='multipart/form-data', method='POST', action='/api/upload')
+                            fieldset
+                                .form-group
+                                    label.col-lg-2.control-label(for='index') Index
+                                    .col-lg-10
+                                        input#index.form-control(type='text', name='index', placeholder='generate date')
+                                .form-group
+                                    label.col-lg-2.control-label(for='offset') Title-row
+                                    .col-lg-10
+                                        input#offset.form-control(type='text', name='offset', value='1')
+                                label.btn.btn-block.btn-info.btn-file
+                                    | UPLOAD
+                                    input#file(type='file', name='file', style='display: none;')
+            script(src='/static/js/jquery-2.2.4.min.js')
+            script(src='/static/js/bootstrap.min.js')
+            script(src='/static/js/application.js')

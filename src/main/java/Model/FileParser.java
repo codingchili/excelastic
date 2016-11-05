@@ -36,7 +36,7 @@ public class FileParser {
 
             readRows(sheet, offset);
         } catch (Exception e) {
-            throw new ParserException();
+            throw new ParserException(e);
         }
     }
 

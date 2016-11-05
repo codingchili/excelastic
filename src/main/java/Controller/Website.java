@@ -1,23 +1,30 @@
 package Controller;
 
-import Model.Configuration;
-import Model.FileParser;
-import Model.ParserException;
+import Model.*;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.handler.StaticHandler;
+import io.vertx.ext.web.handler.*;
+import io.vertx.ext.web.templ.JadeTemplateEngine;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Iterator;
 
 /**
  * @author Robin Duda
  */
 public class Website extends AbstractVerticle {
+    private static final String DONE = "/done";
+    private static final String ERROR = "/error";
+    private static final String MESSAGE = "message";
+    private static final String OFFSET = "offset";
+    private static final String INDEX = "index";
+    private static final String ITEMS = "items";
+    private static final String FILE = "file";
+    private static final String NO_FILE_WAS_UPLOADED = "No file was uploaded.";
     private Vertx vertx;
 
     @Override
@@ -28,13 +35,15 @@ public class Website extends AbstractVerticle {
     @Override
     public void start(Future<Void> start) {
         Router router = Router.router(vertx);
+        JadeTemplateEngine engine = JadeTemplateEngine.create();
 
         router.route().handler(BodyHandler.create());
+
         setRouterAPI(router);
-        router.route("/*").handler(StaticHandler.create());
+        router.route("/static/*").handler(StaticHandler.create());
+        router.route("/*").handler(TemplateHandler.create(engine));
 
         vertx.createHttpServer().requestHandler(router::accept).listen(Configuration.WEB_PORT);
-
         start.complete();
     }
 
@@ -48,38 +57,43 @@ public class Website extends AbstractVerticle {
                 vertx.fileSystem().readFile(upload.uploadedFileName(), file -> {
                     try {
                         parse(file.result(), context.request().params());
-                        redirect(context, "/done.html");
+                        context.put(FILE, upload.fileName());
+                        context.reroute(DONE);
                     } catch (ParserException e) {
-                        redirect(context, "/error.html");
+                        context.put(MESSAGE, traceToText(e));
+                        context.reroute(ERROR);
                     }
                 });
             } else {
-                redirect(context, "/error.html");
+                context.put(MESSAGE, NO_FILE_WAS_UPLOADED);
+                context.reroute(ERROR);
             }
         });
     }
 
+    private String traceToText(Throwable throwable) {
+        StringWriter writer = new StringWriter();
+        throwable.printStackTrace(new PrintWriter(writer));
+        return writer.toString();
+    }
+
     private void parse(Buffer buffer, MultiMap params) throws ParserException {
         try {
-            int columnRow = Integer.parseInt(params.get("offset"));
-            String index = params.get("index");
+            int columnRow = Integer.parseInt(params.get(OFFSET));
+            String index = params.get(INDEX);
             FileParser parser = new FileParser(buffer.getBytes(), columnRow);
 
             JsonObject result = new JsonObject()
-                    .put("items", parser.toJsonArray())
-                    .put("index", index.toLowerCase());
+                    .put(ITEMS, parser.toJsonArray())
+                    .put(INDEX, index.toLowerCase());
 
             sendOutput(result);
         } catch (NumberFormatException e) {
-            throw new ParserException();
+            throw new ParserException(e);
         }
     }
 
     private void sendOutput(JsonObject data) {
         vertx.eventBus().send(Configuration.BUS_TRANSACTIONS, data);
-    }
-
-    private void redirect(RoutingContext context, String uri) {
-        context.request().response().setStatusCode(301).putHeader("location", uri).end();
     }
 }

@@ -32,7 +32,7 @@ public class TestWebsite {
     }
 
     @Rule
-    public Timeout timeout = Timeout.seconds(2);
+    public Timeout timeout = Timeout.seconds(5);
 
     @Test
     public void shouldGetStartPage(TestContext context) {
@@ -44,14 +44,16 @@ public class TestWebsite {
         });
     }
 
-    @Ignore("Requires request to be formatted as form submission with file contents.")
+    @Ignore("The file must be recognized as a file on the server side, test broken.")
     public void shouldSucceedUpload(TestContext context) throws IOException {
         Async async = context.async();
 
         vertx.createHttpClient().post(Configuration.WEB_PORT, "localhost", "/api/upload", response -> {
-            context.assertEquals(301, response.statusCode());
-            context.assertEquals("/done.html", response.getHeader("location"));
-            async.complete();
+            response.bodyHandler(body -> {
+                context.assertTrue(body.toString().contains("Done"));
+                context.assertEquals(200, response.statusCode());
+                async.complete();
+            });
         }).putHeader("content-type", "multipart/form-data").end(new JsonObject()
                 .put("index", "test")
                 .put("offset", 5)
@@ -68,9 +70,11 @@ public class TestWebsite {
         Async async = context.async();
 
         vertx.createHttpClient().post(Configuration.WEB_PORT, "localhost", "/api/upload", response -> {
-            context.assertEquals(301, response.statusCode());
-            context.assertEquals("/error.html", response.getHeader("location"));
-            async.complete();
+            response.bodyHandler(body -> {
+                context.assertTrue(body.toString().contains("Error"));
+                context.assertEquals(200, response.statusCode());
+                async.complete();
+            });
         }).end();
     }
 
