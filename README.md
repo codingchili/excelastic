@@ -5,7 +5,7 @@ Parses XLSX files into ElasticSearch using column titles from specified row comb
 ## Prerequisites
 The application requires ElasticSearch as its output.
 
-ElasticSearch and Kibana (version 5.0.*) should not require any additional configuration or installation, just download and run from [Elastic](https://www.elastic.co/products). 
+ElasticSearch and Kibana (version 5.0.0) should not require any additional configuration or installation, just download and run from [Elastic](https://www.elastic.co/products). 
 
 ## Running
 Running the application,
