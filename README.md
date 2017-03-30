@@ -10,7 +10,7 @@ ElasticSearch and Kibana (version 5.0.0) should not require any additional confi
 ## Running
 Running the application,
 ```
-java -jar <filename.jar> run Launcher
+java -jar excelastic-1.0.1.jar run Launcher
 ```
 
 If any connection errors occur check that the ElasticSearch listen port matches with the elastic_port in the configuration file. Make sure that ElasticSearch is running by directing your browser at [localhost:9200](http://localhost:9200/_count).
