@@ -1,6 +1,6 @@
-package Controller;
+package com.codingchili.Controller;
 
-import Model.*;
+import com.codingchili.Model.*;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
@@ -12,17 +12,19 @@ import io.vertx.ext.web.templ.JadeTemplateEngine;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Iterator;
+import java.util.logging.Logger;
 
 /**
  * @author Robin Duda
+ *
+ * Manages the web interface and handles file uploads.
  */
 public class Website extends AbstractVerticle {
+    private Logger logger = Logger.getLogger(getClass().getName());
     private static final String DONE = "/done";
     private static final String ERROR = "/error";
     private static final String MESSAGE = "message";
     private static final String OFFSET = "offset";
-    private static final String INDEX = "index";
-    private static final String ITEMS = "items";
     private static final String FILE = "file";
     private static final String NO_FILE_WAS_UPLOADED = "No file was uploaded.";
     private Vertx vertx;
@@ -43,8 +45,14 @@ public class Website extends AbstractVerticle {
         router.route("/static/*").handler(StaticHandler.create());
         router.route("/*").handler(TemplateHandler.create(engine));
 
-        vertx.createHttpServer().requestHandler(router::accept).listen(Configuration.WEB_PORT);
-        start.complete();
+        vertx.createHttpServer().requestHandler(router::accept).listen(Configuration.WEB_PORT, done -> {
+            if (done.succeeded()) {
+                logger.info("Started website on port " + Configuration.WEB_PORT);
+                start.complete();
+            } else {
+                start.fail(done.cause());
+            }
+        });
     }
 
     private void setRouterAPI(Router router) {
@@ -80,20 +88,14 @@ public class Website extends AbstractVerticle {
     private void parse(Buffer buffer, MultiMap params) throws ParserException {
         try {
             int columnRow = Integer.parseInt(params.get(OFFSET));
-            String index = params.get(INDEX);
             FileParser parser = new FileParser(buffer.getBytes(), columnRow);
-
-            JsonObject result = new JsonObject()
-                    .put(ITEMS, parser.toJsonArray())
-                    .put(INDEX, index.toLowerCase());
-
-            sendOutput(result);
+            sendOutput(parser.toImportableObject());
         } catch (NumberFormatException e) {
             throw new ParserException(e);
         }
     }
 
     private void sendOutput(JsonObject data) {
-        vertx.eventBus().send(Configuration.BUS_TRANSACTIONS, data);
+        vertx.eventBus().send(Configuration.INDEXING_ELASTICSEARCH, data);
     }
 }

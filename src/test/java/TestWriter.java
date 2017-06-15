@@ -1,5 +1,5 @@
-import Model.Configuration;
-import Model.ElasticWriter;
+import com.codingchili.Model.Configuration;
+import com.codingchili.Model.ElasticWriter;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -46,7 +46,7 @@ public class TestWriter {
             });
         }).listen(Configuration.ELASTIC_PORT);
 
-        vertx.eventBus().send(Configuration.BUS_TRANSACTIONS, new JsonObject()
+        vertx.eventBus().send(Configuration.INDEXING_ELASTICSEARCH, new JsonObject()
                 .put("items", new JsonArray().add(new JsonObject().put("test", true)))
                 .put("index", "test-index"));
     }

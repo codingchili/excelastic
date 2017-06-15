@@ -1,4 +1,4 @@
-package Model;
+package com.codingchili.Model;
 
 import io.vertx.core.json.JsonObject;
 
@@ -8,12 +8,14 @@ import java.nio.file.Files;
 
 /**
  * @author Robin Duda
+ *
+ * Handles application configuration.
  */
 public class Configuration {
     public static final int ELASTIC_PORT = configuration().getInteger("elastic_port");
     public static final String ELASTIC_HOST = configuration().getString("elastic_host");
     public static final int WEB_PORT = configuration().getInteger("web_port");
-    public static final String BUS_TRANSACTIONS = "bus.transactions";
+    public static final String INDEXING_ELASTICSEARCH = "bus.transactions";
     private static JsonObject configuration;
 
     private static JsonObject configuration() {

@@ -1,5 +1,5 @@
-import Controller.Website;
-import Model.Configuration;
+import com.codingchili.Controller.Website;
+import com.codingchili.Model.Configuration;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;

@@ -1,5 +1,5 @@
-import Model.FileParser;
-import Model.ParserException;
+import com.codingchili.Model.FileParser;
+import com.codingchili.Model.ParserException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
@@ -10,6 +10,8 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+
+import static com.codingchili.Model.FileParser.ITEMS;
 
 /**
  * @author Robin Duda
@@ -30,7 +32,7 @@ public class TestParser {
     @Test
     public void succeedParseValid(TestContext context) throws ParserException, IOException {
         FileParser parser = new FileParser(Files.readAllBytes(Paths.get("src/test/java/test.xlsx")), ROW_OFFSET);
-        JsonArray list = parser.toJsonArray();
+        JsonArray list = parser.toImportableObject().getJsonArray(ITEMS);
 
         context.assertEquals(2, list.size());
 

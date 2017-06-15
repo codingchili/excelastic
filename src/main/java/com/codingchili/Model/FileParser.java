@@ -1,4 +1,4 @@
-package Model;
+package com.codingchili.Model;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -13,11 +13,16 @@ import java.util.Iterator;
 
 /**
  * @author Robin Duda
+ *
+ * Parses xlsx files into json objects.
  */
 public class FileParser {
+    public static final String INDEX = "index";
+    public static final String ITEMS = "items";
     private JsonArray list = new JsonArray();
     private int columns;
     private int items;
+    private int offset;
 
     /**
      * Parses the contents of an XLSX into JSON.
@@ -31,6 +36,7 @@ public class FileParser {
             XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(bytes));
             XSSFSheet sheet = workbook.getSheetAt(0);
 
+            this.offset = offset;
             this.columns = getColumnCount(sheet.getRow(offset));
             this.items = getItemCount(sheet, offset);
 
@@ -40,8 +46,8 @@ public class FileParser {
         }
     }
 
-    public JsonArray toJsonArray() {
-        return list;
+    public JsonObject toImportableObject() {
+        return new JsonObject().put(ITEMS, list).put(INDEX, offset);
     }
 
     private void readRows(XSSFSheet sheet, int columnRow) {
