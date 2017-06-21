@@ -31,8 +31,17 @@ public class TestParser {
     }
 
     @Test
-    public void succeedParseValid(TestContext context) throws ParserException, IOException {
-        FileParser parser = new FileParser(Files.readAllBytes(Paths.get("src/test/java/test.xlsx")), ROW_OFFSET, XLSX);
+    public void testParseOOXML(TestContext context) throws IOException, ParserException {
+        testParseFile(context, "src/test/java/test.xlsx");
+    }
+
+    @Test
+    public void testParse2007(TestContext context) throws IOException, ParserException {
+        testParseFile(context, "src/test/java/test.xls");
+    }
+
+    private void testParseFile(TestContext context, String fileName) throws IOException, ParserException {
+        FileParser parser = new FileParser(Files.readAllBytes(Paths.get(fileName)), ROW_OFFSET, fileName);
         JsonArray list = parser.toImportable("index").getJsonArray(ITEMS);
 
         context.assertEquals(2, list.size());
@@ -48,5 +57,4 @@ public class TestParser {
             context.assertEquals("cell " + (ROW_OFFSET + 1 + i) + "." + 3, json.getString("Column 3"));
         }
     }
-
 }

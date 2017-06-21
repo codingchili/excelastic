@@ -71,7 +71,7 @@ public class TestWebsite {
 
         vertx.createHttpClient().post(Configuration.getWebPort(), "localhost", "/api/upload", response -> {
             response.bodyHandler(body -> {
-                context.assertTrue(body.toString().contains("Error"));
+                context.assertTrue(body.toString().contains("error"));
                 context.assertEquals(200, response.statusCode());
                 async.complete();
             });
