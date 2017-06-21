@@ -5,6 +5,7 @@ import io.vertx.core.json.JsonObject;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.util.logging.Logger;
 
 /**
  * @author Robin Duda
@@ -13,20 +14,25 @@ import java.nio.file.Files;
  */
 public class Configuration {
     public static final String INDEXING_ELASTICSEARCH = "bus.transactions";
-    private static final int ELASTIC_PORT = configuration().getInteger("elastic_port");
-    private static final String ELASTIC_HOST = configuration().getString("elastic_host");
-    private static int WEB_PORT = configuration().getInteger("web_port");
-    private static JsonObject configuration;
+    private static final String CONFIGURATION_JSON = "configuration.json";
+    private static int ELASTIC_PORT;
+    private static String ELASTIC_HOST;
+    private static int WEB_PORT;
 
-    private static JsonObject configuration() {
+    static {
+        JsonObject configuration = getConfiguration();
+        ELASTIC_PORT = configuration.getInteger("elastic_port", 9200);
+        ELASTIC_HOST = configuration.getString("elastic_host", "localhost");
+        WEB_PORT = configuration.getInteger("web_port", 9999);
+    }
+    private static JsonObject getConfiguration() {
         try {
-            if (configuration == null) {
-                configuration = new JsonObject(
-                        new String(Files.readAllBytes(FileSystems.getDefault().getPath("configuration.json"))));
-            }
-            return configuration;
+            return new JsonObject(
+                        new String(Files.readAllBytes(FileSystems.getDefault().getPath(CONFIGURATION_JSON))));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            Logger.getLogger(Configuration.class.getName()).info(
+                    String.format("Configuration file %s is not present, using defaults.", CONFIGURATION_JSON));
+            return new JsonObject();
         }
     }
 

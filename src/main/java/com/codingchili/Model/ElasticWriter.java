@@ -95,7 +95,8 @@ public class ElasticWriter extends AbstractVerticle {
                 response -> response.bodyHandler(buffer -> {
                        version = buffer.toJsonObject().getJsonObject("version").getString("number");
                         if (!connected) {
-                            logger.info(String.format("Connected to elasticsearch server %s", version));
+                            logger.info(String.format("Connected to elasticsearch server %s at %s:%d",
+                                    version, Configuration.getElasticHost(), Configuration.getElasticPort()));
                             connected = true;
                             vertx.eventBus().send(ES_STATUS, connected);
                         }
