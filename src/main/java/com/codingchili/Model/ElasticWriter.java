@@ -42,6 +42,9 @@ public class ElasticWriter extends AbstractVerticle {
         pollElasticServer(0L);
     }
 
+    /**
+     * Listens on the event bus for files.
+     */
     private void startSubmitListener() {
         vertx.eventBus().consumer(Configuration.INDEXING_ELASTICSEARCH, handler -> {
             JsonObject data = (JsonObject) handler.body();
@@ -49,6 +52,7 @@ public class ElasticWriter extends AbstractVerticle {
             String index = data.getString(INDEX);
             CountDownLatch latch = new CountDownLatch(getBatchCount(items.size()));
 
+            // performs one bulk request for each bucket of MAX_BATCH
             for (int i = 0; i < items.size(); i += MAX_BATCH) {
                 final int max = ((i + MAX_BATCH < items.size()) ? i + MAX_BATCH : items.size());
                 final int current = i;
@@ -61,6 +65,7 @@ public class ElasticWriter extends AbstractVerticle {
                             response.bodyHandler(body -> {
                                 latch.countDown();
 
+                                // complete successfully when all buckets are inserted.
                                 if (latch.getCount() == 0) {
                                     handler.reply(null);
                                 }
@@ -71,10 +76,23 @@ public class ElasticWriter extends AbstractVerticle {
         });
     }
 
+    /**
+     * Determines the number of batches to bulk insert.
+     * @param size the total number of items to insert
+     * @return the number of batches required to submit the size
+     */
     private int getBatchCount(int size) {
         return (size / MAX_BATCH) + ((size % MAX_BATCH != 0) ? 1 : 0);
     }
 
+    /**
+     * Builds a bulk query for insertion into elasticsearch
+     * @param list full list of all elements
+     * @param index the current item anchor
+     * @param max max upper bound of items to include in the bulk
+     * @param current lower bound of items to include in the bulk
+     * @return a payload encoded as json-lines.
+     */
     private String bulkQuery(JsonArray list, String index, int max, int current) {
         String query = "";
         JsonObject header = new JsonObject()
@@ -90,6 +108,11 @@ public class ElasticWriter extends AbstractVerticle {
         return query;
     }
 
+    /**
+     * Polls the elasticsearch server for version information. Sets connected if the server
+     * is available.
+     * @param id the id of the timer that triggered the request, not used.
+     */
     private void pollElasticServer(Long id) {
         vertx.createHttpClient().get(Configuration.getElasticPort(), Configuration.getElasticHost(), "/",
                 response -> response.bodyHandler(buffer -> {

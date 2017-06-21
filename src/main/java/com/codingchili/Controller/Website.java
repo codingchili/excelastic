@@ -1,21 +1,10 @@
 package com.codingchili.Controller;
 
-import java.awt.*;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import com.codingchili.ApplicationLauncher;
 import com.codingchili.Model.Configuration;
 import com.codingchili.Model.ElasticWriter;
 import com.codingchili.Model.FileParser;
 import com.codingchili.Model.ParserException;
-
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.FileUpload;
@@ -24,6 +13,12 @@ import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.templ.JadeTemplateEngine;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static com.codingchili.Model.FileParser.INDEX;
 
@@ -57,6 +52,7 @@ public class Website extends AbstractVerticle {
         router.route("/favicon.ico").handler(ctx -> ctx.response().end());
         router.route("/static/*").handler(StaticHandler.create());
 
+        // adds values used in the template to all routes.
         router.route("/*").handler(context -> {
             context.put("version", ApplicationLauncher.version);
             context.put("esVersion", ElasticWriter.getElasticVersion());
@@ -78,6 +74,10 @@ public class Website extends AbstractVerticle {
         });
     }
 
+    /**
+     * Adds the upload route to the given router
+     * @param router the upload route is added to the given router
+     */
     private void setRouterAPI(Router router) {
         router.route("/api/upload").handler(context -> {
             Iterator<FileUpload> iterator = context.fileUploads().iterator();
@@ -109,12 +109,26 @@ public class Website extends AbstractVerticle {
         });
     }
 
+    /**
+     * converts a throwables stack trace into a string.
+     * @param throwable the throwable to be converted.
+     * @return a textual representation of the throwables trace,
+     * may be used in the app to display errors.
+     */
     private String traceToText(Throwable throwable) {
         StringWriter writer = new StringWriter();
         throwable.printStackTrace(new PrintWriter(writer));
         return writer.toString();
     }
 
+    /**
+     * Parses a file upload request, converting the excel payload into json and waits
+     * for elasticsearch to complete indexing.
+     * @param buffer contains the excel file data
+     * @param params upload parameters
+     * @param fileName the name of the uploaded file
+     * @param future callback on completed parse + indexing.
+     */
     private void parse(Buffer buffer, MultiMap params, String fileName, Future<Integer> future) {
         vertx.<Integer>executeBlocking(blocking -> {
             try {

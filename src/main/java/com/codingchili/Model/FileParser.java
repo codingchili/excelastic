@@ -49,6 +49,14 @@ public class FileParser {
         }
     }
 
+    /**
+     * Returns a workbook implementation based on the extension of the filname.
+     * @param bytes bytes representing a workbook
+     * @param fileName the filename to determine a specific workbook implementation
+     * @return a workbook implentation that supports the given file format
+     * @throws ParserException when the file extension is unsupported
+     * @throws IOException when the given data is not a valid workbook
+     */
     private Workbook getWorkbook(byte[] bytes, String fileName) throws ParserException, IOException {
         if (fileName.endsWith(OOXML)) {
             return new XSSFWorkbook(new ByteArrayInputStream(bytes));
@@ -69,10 +77,21 @@ public class FileParser {
         return rows;
     }
 
+    /**
+     * converts the parsed list of items into a json object that includes the index name.
+     * may be passed to the ElasticWriter.
+     * @param index the name of the index to index to
+     * @return an importable jsonobject.
+     */
     public JsonObject toImportable(String index) {
         return new JsonObject().put(ITEMS, list).put(INDEX, index);
     }
 
+    /**
+     * reads the rows in the given sheet
+     * @param sheet the sheet to read rows from
+     * @param columnRow the row to read from
+     */
     private void readRows(Sheet sheet, int columnRow) {
         String[] columns = getColumns(sheet.getRow(columnRow));
 
@@ -81,6 +100,11 @@ public class FileParser {
         }
     }
 
+    /**
+     * retrieves the values of the column titles.
+     * @param row that points to the column titles.
+     * @return an array of the titles
+     */
     private String[] getColumns(Row row) {
         String[] titles = new String[columns];
 
@@ -90,6 +114,11 @@ public class FileParser {
         return titles;
     }
 
+    /**
+     * Returns the number of columns present on the given row.
+     * @param row the row to read column count from.
+     * @return the number of columns on the given row
+     */
     private int getColumnCount(Row row) {
         DataFormatter formatter = new DataFormatter();
         Iterator<Cell> iterator = row.iterator();
@@ -108,6 +137,13 @@ public class FileParser {
         return count;
     }
 
+    /**
+     * counts the number of rows to be imported taking into account the offset
+     * of the title columns.
+     * @param sheet the sheet to read items from
+     * @param offset the offset of the title columns
+     * @return the number of rows minus the column title offset.
+     */
     private int getItemCount(Sheet sheet, int offset) {
         int count = 0;
         Row row = sheet.getRow(offset + 1);
@@ -120,6 +156,12 @@ public class FileParser {
         return count;
     }
 
+    /**
+     * retrieves a row as a json object.
+     * @param titles the titles of the row.
+     * @param row the row to read values from.
+     * @return a jsonobject that maps titles to the column values.
+     */
     private JsonObject getRow(String[] titles, Row row) {
         DataFormatter formatter = new DataFormatter();
         JsonObject json = new JsonObject();
@@ -138,7 +180,6 @@ public class FileParser {
                     }
                     break;
             }
-            logger.info("got=" + json.getValue(titles[index]));
             index++;
         }
         return json;

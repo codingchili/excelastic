@@ -20,7 +20,7 @@ import static com.codingchili.Model.ElasticWriter.ES_STATUS;
 /**
  * @author Robin Duda
  *
- * ApplicationLauncher class to bootstrap the application.
+ * Launcher class to bootstrap the application.
  */
 public class ApplicationLauncher {
     private static final Logger logger = Logger.getLogger(ApplicationLauncher.class.getName());
@@ -71,6 +71,11 @@ public class ApplicationLauncher {
         return args[1];
     }
 
+    /**
+     * Imports a file from the commandline.
+     * @param fileName the name of the file to import.
+     * @param indexName the name of the index to import the file into.
+     */
     private void importFile(String fileName, String indexName) {
         logger.info(String.format("Loading file %s from filesystem..", fileName));
         vertx.fileSystem().readFile(fileName, file -> {
