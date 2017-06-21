@@ -8,8 +8,9 @@ html(lang='en')
         link(href='/static/css/bootstrap.min.css', rel='stylesheet')
         link(href='/static/css/style.css', rel='stylesheet')
     body
-        span.glyphicon.glyphicon-plus(aria-hidden="true", data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Add another window")#add-window
-        span.glyphicon.glyphicon-remove(aria-hidden="true", data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Close this window")#close-window
+        div#menu
+            span.glyphicon.glyphicon-plus(aria-hidden="true", data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Add another window")#add-window
+            span.glyphicon.glyphicon-remove(aria-hidden="true", data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Close this window")#close-window
         | <div class="tooltip fade bottom" role="tooltip" id="tooltip89076" style="top: 43.3333px; left: 116.542px; display: block;"><div class="tooltip-arrow" style="left: 50%;"></div><div class="tooltip-inner">Tooltip on bottom</div></div>
         .container.col-xs-10.col-xs-offset-1.col-md-8.col-md-offset-2.col-lg-6.col-lg-offset-3
             .jumbotron
