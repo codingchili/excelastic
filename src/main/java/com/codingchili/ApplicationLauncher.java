@@ -1,5 +1,9 @@
 package com.codingchili;
 
+import java.awt.*;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -10,6 +14,8 @@ import com.codingchili.Model.FileParser;
 import com.codingchili.Model.ParserException;
 
 import io.vertx.core.*;
+
+import static com.codingchili.Model.ElasticWriter.ES_STATUS;
 
 /**
  * @author Robin Duda
@@ -38,6 +44,15 @@ public class ApplicationLauncher {
 
                 if (args.length == 3) {
                     importFile(getFileName(), getIndexName());
+                } else {
+                    vertx.eventBus().consumer(ES_STATUS, message -> {
+                        logger.info("Attempting to open browser..");
+                        try {
+                            Desktop.getDesktop().browse(new URI(Configuration.getWebsiteURL()));
+                        } catch (IOException | URISyntaxException e) {
+                            logger.warning(e.getMessage());
+                        }
+                    });
                 }
             } else {
                 logger.log(Level.SEVERE, "Failed to start application", done.cause());

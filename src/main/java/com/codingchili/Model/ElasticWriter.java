@@ -22,6 +22,7 @@ public class ElasticWriter extends AbstractVerticle {
     private static final String BULK = "/_bulk";
     private static final int POLL = 5000;
     private static final int MAX_BATCH = 255;
+    public static final String ES_STATUS = "es-status";
     private static String version = "";
     private boolean connected = false;
     private Logger logger = Logger.getLogger(getClass().getName());
@@ -30,7 +31,6 @@ public class ElasticWriter extends AbstractVerticle {
     @Override
     public void init(Vertx vertx, Context context) {
         this.vertx = vertx;
-
         vertx.setPeriodic(POLL, this::pollElasticServer);
     }
 
@@ -39,6 +39,7 @@ public class ElasticWriter extends AbstractVerticle {
         startSubmitListener();
         logger.info("Started elastic writer");
         start.complete();
+        pollElasticServer(0L);
     }
 
     private void startSubmitListener() {
@@ -97,6 +98,7 @@ public class ElasticWriter extends AbstractVerticle {
                         if (!connected) {
                             logger.info(String.format("Connected to elasticsearch server %s", version));
                             connected = true;
+                            vertx.eventBus().send(ES_STATUS, connected);
                         }
                     })).exceptionHandler(event -> {
                     connected = false;

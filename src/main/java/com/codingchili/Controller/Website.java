@@ -70,12 +70,6 @@ public class Website extends AbstractVerticle {
             if (done.succeeded()) {
                 Configuration.setWebPort(done.result().actualPort());
                 logger.info("Started website on port " + Configuration.getWebPort());
-                logger.info("Attempting to open browser..");
-                try {
-                    Desktop.getDesktop().browse(new URI(Configuration.getWebsiteURL()));
-                } catch (IOException | URISyntaxException e) {
-                    logger.warning(e.getMessage());
-                }
                 start.complete();
             } else {
                 start.fail(done.cause());
