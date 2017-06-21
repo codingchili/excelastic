@@ -4,10 +4,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.ByteArrayInputStream;
@@ -94,13 +91,15 @@ public class FileParser {
     }
 
     private int getColumnCount(Row row) {
+        DataFormatter formatter = new DataFormatter();
         Iterator<Cell> iterator = row.iterator();
         int count = 0;
 
         while (iterator.hasNext()) {
             Cell cell = iterator.next();
+            String value = formatter.formatCellValue(cell);
 
-            if (cell.getStringCellValue() != null) {
+            if (value.length() > 0) {
                 count++;
             } else {
                 break;
@@ -122,18 +121,24 @@ public class FileParser {
     }
 
     private JsonObject getRow(String[] titles, Row row) {
+        DataFormatter formatter = new DataFormatter();
         JsonObject json = new JsonObject();
         int index = 0;
 
         for (Cell cell : row) {
             switch (cell.getCellType()) {
-                case Cell.CELL_TYPE_NUMERIC:
-                    json.put(titles[index], cell.getNumericCellValue());
-                    break;
                 case Cell.CELL_TYPE_STRING:
-                    json.put(titles[index], cell.getStringCellValue().split("/")[0]);
+                    json.put(titles[index], formatter.formatCellValue(cell));
+                    break;
+                case Cell.CELL_TYPE_NUMERIC:
+                    if (DateUtil.isCellDateFormatted(cell)) {
+                        json.put(titles[index], cell.getDateCellValue().toInstant().toString());
+                    } else {
+                        json.put(titles[index], cell.getNumericCellValue());
+                    }
                     break;
             }
+            logger.info("got=" + json.getValue(titles[index]));
             index++;
         }
         return json;

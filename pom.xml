@@ -10,7 +10,7 @@
 
     <groupId>com.codingchili</groupId>
     <artifactId>excelastic</artifactId>
-    <version>1.0.2</version>
+    <version>1.2.0</version>
     <build>
         <plugins>
             <plugin>
