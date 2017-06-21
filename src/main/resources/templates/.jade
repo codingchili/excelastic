@@ -1,34 +1,34 @@
 doctype html
 html(lang='en')
-    head
-        meta(charset='utf-8')
-        meta(http-equiv='X-UA-Compatible', content='IE=edge')
-        meta(name='viewport', content='width=device-width, initial-scale=1')
-        title Excelastic ~
-        link(href='/static/css/bootstrap.min.css', rel='stylesheet')
-        link(href='/static/css/style.css', rel='stylesheet')
+    include head
     body
-        .container
+        include menu
+        .container.col-xs-10.col-xs-offset-1.col-md-8.col-md-offset-2.col-lg-6.col-lg-offset-3
             .jumbotron
-                h1 Excelastic
-                p Import XLSX files into ElasticSearch!
-            .col-xs-6.col-xs-offset-3
-                .panel.panel-info
-                    .panel-heading Upload XLSX File!
-                    .panel-body
-                        form#upload.form-horizontal(enctype='multipart/form-data', method='POST', action='/api/upload')
-                            fieldset
-                                .form-group
-                                    label.col-lg-2.control-label(for='index') Index
-                                    .col-lg-10
-                                        input#index.form-control(type='text', name='index', placeholder='generate date')
-                                .form-group
-                                    label.col-lg-2.control-label(for='offset') Title-row
-                                    .col-lg-10
-                                        input#offset.form-control(type='text', name='offset', value='1')
-                                label.btn.btn-block.btn-info.btn-file
-                                    | UPLOAD
-                                    input#file(type='file', name='file', style='display: none;')
-            script(src='/static/js/jquery-2.2.4.min.js')
-            script(src='/static/js/bootstrap.min.js')
-            script(src='/static/js/application.js')
+                h1 Excelastic #{context.version}
+                if (context.connected)
+                    p Import excel files into #[a(href=context.esURL)  ElasticSearch #{context.esVersion}]
+                else
+                    p.text-danger Not connected, #[a(href=".") refresh?]
+        div.col-xs-10.col-xs-offset-1.col-lg-4.col-lg-offset-4
+            .panel.panel-info
+                .panel-heading#panelheader Upload an .xlsx or .xls file!
+                .panel-body
+                    div#progress
+                        .progress
+                            .progress-bar.progress-bar-striped.active(role="progressbar", style="width: 100%")#progress-bar
+                                span.sr-only Uploading...
+                    form#upload.form-horizontal(enctype='multipart/form-data', method='POST', action='/api/upload')
+                        fieldset
+                            .form-group
+                                label.col-lg-2.control-label(for='index') Index
+                                .col-lg-10
+                                    input#index.form-control(type='text', name='index', placeholder='generate date')
+                            .form-group
+                                label.col-lg-2.control-label(for='offset') Title-row
+                                .col-lg-10
+                                    input#offset.form-control(type='text', name='offset', value='1')
+                            label.btn.btn-block.btn-info.btn-file
+                                | UPLOAD
+                                input#file(type='file', name='file', style='display: none;')
+        include scripts

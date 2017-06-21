@@ -1,5 +1,5 @@
-import Controller.Website;
-import Model.Configuration;
+import com.codingchili.Controller.Website;
+import com.codingchili.Model.Configuration;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
@@ -38,7 +38,7 @@ public class TestWebsite {
     public void shouldGetStartPage(TestContext context) {
         Async async = context.async();
 
-        vertx.createHttpClient().getNow(Configuration.WEB_PORT, "localhost", "/", response -> {
+        vertx.createHttpClient().getNow(Configuration.getWebPort(), "localhost", "/", response -> {
             context.assertEquals(200, response.statusCode());
             async.complete();
         });
@@ -48,7 +48,7 @@ public class TestWebsite {
     public void shouldSucceedUpload(TestContext context) throws IOException {
         Async async = context.async();
 
-        vertx.createHttpClient().post(Configuration.WEB_PORT, "localhost", "/api/upload", response -> {
+        vertx.createHttpClient().post(Configuration.getWebPort(), "localhost", "/api/upload", response -> {
             response.bodyHandler(body -> {
                 context.assertTrue(body.toString().contains("Done"));
                 context.assertEquals(200, response.statusCode());
@@ -69,9 +69,9 @@ public class TestWebsite {
     public void shouldFailUpload(TestContext context) {
         Async async = context.async();
 
-        vertx.createHttpClient().post(Configuration.WEB_PORT, "localhost", "/api/upload", response -> {
+        vertx.createHttpClient().post(Configuration.getWebPort(), "localhost", "/api/upload", response -> {
             response.bodyHandler(body -> {
-                context.assertTrue(body.toString().contains("Error"));
+                context.assertTrue(body.toString().contains("error"));
                 context.assertEquals(200, response.statusCode());
                 async.complete();
             });

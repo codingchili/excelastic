@@ -1,4 +1,4 @@
-import Model.Configuration;
+import com.codingchili.Model.Configuration;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.junit.Test;
@@ -13,9 +13,9 @@ public class TestConfiguration {
 
     @Test
     public void shouldLoadConfiguration(TestContext context) {
-        context.assertNotNull(Configuration.WEB_PORT);
-        context.assertNotNull(Configuration.ELASTIC_PORT);
-        context.assertNotNull(Configuration.ELASTIC_HOST);
+        context.assertNotNull(Configuration.getWebPort());
+        context.assertNotNull(Configuration.getElasticPort());
+        context.assertNotNull(Configuration.getElasticHost());
     }
 
 }
