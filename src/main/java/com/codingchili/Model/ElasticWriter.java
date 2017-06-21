@@ -44,7 +44,6 @@ public class ElasticWriter extends AbstractVerticle {
 
     private void startSubmitListener() {
         vertx.eventBus().consumer(Configuration.INDEXING_ELASTICSEARCH, handler -> {
-            logger.info("Received file object, starting import..");
             JsonObject data = (JsonObject) handler.body();
             JsonArray items = data.getJsonArray(ITEMS);
             String index = data.getString(INDEX);

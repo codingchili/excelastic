@@ -36,13 +36,14 @@ public class ApplicationLauncher {
         this.args = args;
 
         logger.info(String.format("Starting excelastic %s..", version));
+        logger.info("to import files without the web interface use: <filename> <index>");
         Future<Void> future = Future.future();
 
         future.setHandler(done -> {
             if (done.succeeded()) {
                 logger.info("Successfully started application");
 
-                if (args.length == 3) {
+                if (args.length == 2) {
                     importFile(getFileName(), getIndexName());
                 } else {
                     vertx.eventBus().consumer(ES_STATUS, message -> {
@@ -63,11 +64,11 @@ public class ApplicationLauncher {
     }
 
     private String getFileName() {
-        return args[1];
+        return args[0];
     }
 
     private String getIndexName() {
-        return args[2];
+        return args[1];
     }
 
     private void importFile(String fileName, String indexName) {
@@ -77,8 +78,15 @@ public class ApplicationLauncher {
                 logger.info("Parsing XLSX file to JSON..");
                 try {
                     FileParser parser = new FileParser(file.result().getBytes(), 1, fileName);
-                    logger.info("File parsed, starting import to elasticsearch..");
-                    vertx.eventBus().send(Configuration.INDEXING_ELASTICSEARCH, parser.toImportable(indexName));
+                    logger.info(String.format("File parsed, starting import to %s..", indexName));
+                    vertx.eventBus().send(Configuration.INDEXING_ELASTICSEARCH, parser.toImportable(indexName), done -> {
+                        if (done.succeeded()) {
+                            logger.info("Import completed, shutting down.");
+                        } else {
+                            logger.log(Level.SEVERE, "Failed to import", done.cause());
+                        }
+                        System.exit(0); // vertx.close gives an error: "result already completed: success"
+                    });
                 } catch (ParserException e) {
                     logger.log(Level.SEVERE, String.format("Failed to import file %s", fileName));
                 }

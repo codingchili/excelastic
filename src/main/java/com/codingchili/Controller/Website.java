@@ -89,6 +89,7 @@ public class Website extends AbstractVerticle {
                             Future.<Integer>future().setHandler(result -> {
                                 if (result.succeeded()) {
                                     logger.info(String.format("Imported file %s successfully.", upload.fileName()));
+                                    context.put(INDEX, context.request().params().get(INDEX));
                                     context.put(FILE, upload.fileName());
                                     context.put(IMPORTED, result.result());
                                     context.reroute(DONE);

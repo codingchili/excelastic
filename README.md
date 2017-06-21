@@ -5,12 +5,12 @@ Parses XLSX files into ElasticSearch using column titles from specified row comb
 ## Prerequisites
 The application requires ElasticSearch as its output.
 
-ElasticSearch and Kibana (version 5.0.0) should not require any additional configuration or installation, just download and run from [Elastic](https://www.elastic.co/products). 
+ElasticSearch and Kibana (version 5.2.4) should not require any additional configuration or installation, just download and run from [Elastic](https://www.elastic.co/products).
 
 ## Running
 Running the application,
 ```
-java -jar excelastic-1.0.2.jar
+java -jar excelastic-1.2.0.jar
 ```
 
 If any connection errors occur check that the ElasticSearch listen port matches with the elastic_port in the configuration file. Make sure that ElasticSearch is running by directing your browser at [localhost:9200](http://localhost:9200/_count). When the server is started browse to [localhost:8080](http://localhost:8080/) for the web interface.
