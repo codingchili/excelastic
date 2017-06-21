@@ -125,7 +125,13 @@ public class Website extends AbstractVerticle {
                 int columnRow = Integer.parseInt(params.get(OFFSET));
                 FileParser parser = new FileParser(buffer.getBytes(), columnRow, fileName);
                 vertx.eventBus().send(Configuration.INDEXING_ELASTICSEARCH,
-                        parser.toImportable(params.get(INDEX)), reply -> blocking.complete(parser.getImportedItems()));
+                        parser.toImportable(params.get(INDEX)), reply -> {
+                    if (reply.succeeded()) {
+                        blocking.complete(parser.getImportedItems());
+                    } else {
+                        blocking.fail(reply.cause());
+                    }
+                });
             } catch (ParserException | NumberFormatException e) {
                 blocking.fail(new ParserException(e));
             }

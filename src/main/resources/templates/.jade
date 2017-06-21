@@ -8,20 +8,24 @@ html(lang='en')
         link(href='/static/css/bootstrap.min.css', rel='stylesheet')
         link(href='/static/css/style.css', rel='stylesheet')
     body
-        span.glyphicon.glyphicon-plus(aria-hidden="true", data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Tooltip on bottom")
-        span.glyphicon.glyphicon-remove(aria-hidden="true", data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Tooltip on bottom")
+        span.glyphicon.glyphicon-plus(aria-hidden="true", data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Add another window")#add-window
+        span.glyphicon.glyphicon-remove(aria-hidden="true", data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Close this window")#close-window
         | <div class="tooltip fade bottom" role="tooltip" id="tooltip89076" style="top: 43.3333px; left: 116.542px; display: block;"><div class="tooltip-arrow" style="left: 50%;"></div><div class="tooltip-inner">Tooltip on bottom</div></div>
-        .container.col-xs-10.col-xs-offset-1
+        .container.col-xs-10.col-xs-offset-1.col-md-8.col-md-offset-2.col-lg-6.col-lg-offset-3
             .jumbotron
                 h1 Excelastic #{context.version}
                 if (context.esVersion)
                     p Import excel files into #[a(href=context.esURL)  ElasticSearch #{context.esVersion}]
                 else
                     p not connected, #[a(href=".") refresh?]
-        div.col-xs-6.col-xs-offset-3
+        div.col-xs-10.col-xs-offset-1.col-lg-4.col-lg-offset-4
             .panel.panel-info
-                .panel-heading Upload an .xlsx or .xls file!
+                .panel-heading#panelheader Upload an .xlsx or .xls file!
                 .panel-body
+                    div#progress
+                        .progress
+                            .progress-bar.progress-bar-striped.active(role="progressbar", style="width: 100%")#progress-bar
+                                span.sr-only Uploading...
                     form#upload.form-horizontal(enctype='multipart/form-data', method='POST', action='/api/upload')
                         fieldset
                             .form-group

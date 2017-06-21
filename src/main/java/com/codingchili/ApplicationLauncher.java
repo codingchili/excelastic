@@ -18,7 +18,7 @@ import io.vertx.core.*;
  */
 public class ApplicationLauncher {
     private static final Logger logger = Logger.getLogger(ApplicationLauncher.class.getName());
-    public static String version = "1.1.0";
+    public static String version = "1.2.0";
     private Vertx vertx = Vertx.vertx();
     private String[] args;
 

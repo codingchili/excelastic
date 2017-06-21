@@ -28,7 +28,7 @@ public class FileParser {
     private Logger logger = Logger.getLogger(getClass().getName());
     private JsonArray list = new JsonArray();
     private int columns;
-    private int items;
+    private int rows;
 
     /**
      * Parses the contents of an XLSX into JSON.
@@ -43,10 +43,10 @@ public class FileParser {
             Sheet sheet = workbook.getSheetAt(0);
 
             this.columns = getColumnCount(sheet.getRow(offset));
-            this.items = getItemCount(sheet, offset);
+            this.rows = getItemCount(sheet, offset);
 
             readRows(sheet, offset);
-            logger.info(String.format("Imported %d rows from file %s.", items, fileName));
+            logger.info(String.format("Parsed %d rows from file %s.", rows -1, fileName));
         } catch (Exception e) {
             throw new ParserException(e);
         }
@@ -69,7 +69,7 @@ public class FileParser {
     }
 
     public int getImportedItems() {
-        return items;
+        return rows;
     }
 
     public JsonObject toImportable(String index) {
@@ -79,7 +79,7 @@ public class FileParser {
     private void readRows(Sheet sheet, int columnRow) {
         String[] columns = getColumns(sheet.getRow(columnRow));
 
-        for (int i = 0; i < items; i++) {
+        for (int i = 0; i < rows; i++) {
             list.add(getRow(columns, sheet.getRow(i + columnRow + 1)));
         }
     }

@@ -8,9 +8,9 @@ html(lang='en')
         link(href='/static/css/bootstrap.min.css', rel='stylesheet')
         link(href='/static/css/style.css', rel='stylesheet')
     body
-        .container
+        .container.col-xs-12.col-lg-8.col-lg-offset-2
             .jumbotron
-                h1 Error!
+                h1 There was an error uploading the file
                 pre=context.message
                 p
                     a(href='/')
