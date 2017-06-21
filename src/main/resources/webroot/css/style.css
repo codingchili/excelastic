@@ -13,8 +13,8 @@ span.glyphicon {
 }
 
 #menu    {
-    right: 32px;
-    top: 16px;
+    right: 0px;
+    top: 0px;
     position: absolute;
     z-index: 1;
 }

@@ -23,8 +23,8 @@ public class ElasticWriter extends AbstractVerticle {
     private static final int POLL = 5000;
     private static final int MAX_BATCH = 255;
     public static final String ES_STATUS = "es-status";
+    private static boolean connected = false;
     private static String version = "";
-    private boolean connected = false;
     private Logger logger = Logger.getLogger(getClass().getName());
     private Vertx vertx;
 
@@ -108,5 +108,9 @@ public class ElasticWriter extends AbstractVerticle {
 
     public static String getElasticVersion() {
         return version;
+    }
+
+    public static boolean isConnected() {
+        return connected;
     }
 }

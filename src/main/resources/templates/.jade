@@ -8,17 +8,29 @@ html(lang='en')
         link(href='/static/css/bootstrap.min.css', rel='stylesheet')
         link(href='/static/css/style.css', rel='stylesheet')
     body
-        div#menu
-            span.glyphicon.glyphicon-plus(aria-hidden="true", data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Add another window")#add-window
-            span.glyphicon.glyphicon-remove(aria-hidden="true", data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Close this window")#close-window
-        | <div class="tooltip fade bottom" role="tooltip" id="tooltip89076" style="top: 43.3333px; left: 116.542px; display: block;"><div class="tooltip-arrow" style="left: 50%;"></div><div class="tooltip-inner">Tooltip on bottom</div></div>
+        .dropdown#menu
+            button.btn.btn-primary.dropdown-toggle(type='button', data-toggle='dropdown')
+                | Application menu
+                span.caret
+            ul.dropdown-menu
+                li
+                    a(href='.')#add-window New window
+                li
+                    a(href='https://www.elastic.co/products/elasticsearch', target='_blank') ElasticSearch
+                li
+                    a(href='https://www.elastic.co/products/kibana', target='_blank') Kibana
+                li
+                    a(href='https://github.com/codingchili/parser-excel-elasticsearch', target='_blank') GitHub!
+                li
+                    a(href='.')#close-window Close
+
         .container.col-xs-10.col-xs-offset-1.col-md-8.col-md-offset-2.col-lg-6.col-lg-offset-3
             .jumbotron
                 h1 Excelastic #{context.version}
-                if (context.esVersion)
+                if (context.connected)
                     p Import excel files into #[a(href=context.esURL)  ElasticSearch #{context.esVersion}]
                 else
-                    p not connected, #[a(href=".") refresh?]
+                    p.text-danger Not connected, #[a(href=".") refresh?]
         div.col-xs-10.col-xs-offset-1.col-lg-4.col-lg-offset-4
             .panel.panel-info
                 .panel-heading#panelheader Upload an .xlsx or .xls file!
