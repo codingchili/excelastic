@@ -1,19 +1,12 @@
 doctype html
 html(lang='en')
-    head
-        meta(charset='utf-8')
-        meta(http-equiv='X-UA-Compatible', content='IE=edge')
-        meta(name='viewport', content='width=device-width, initial-scale=1')
-        title Excelastic ~
-        link(href='/static/css/bootstrap.min.css', rel='stylesheet')
-        link(href='/static/css/style.css', rel='stylesheet')
+    include head
     body
+        include menu
         .container.col-xs-10.col-xs-offset-1.col-md-8.col-md-offset-2.col-lg-6.col-lg-offset-3
             .jumbotron
                 h1 Success!
                 p
                     | Imported #{context.imported} rows from '#{context.file}' into #{context.index} successfully.
-                    a(href='/')
-                        button.btn.btn-success.btn-block ANOTHER FILE
-        script(src='/static/js/jquery-2.2.4.min.js')
-        script(src='/static/js/bootstrap.min.js')
+                    button.btn.btn-success.btn-block#start-page ANOTHER FILE
+        include scripts

@@ -22,3 +22,7 @@ $('#close-window').click(function () {
 $('#add-window').click(function () {
     window.open(window.location.href, '_blank');
 });
+
+$('#start-page').click(function () {
+    window.location.href = '/';
+});
