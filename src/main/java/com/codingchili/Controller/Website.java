@@ -1,23 +1,36 @@
 package com.codingchili.Controller;
 
-import com.codingchili.Model.*;
-import io.vertx.core.*;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.FileUpload;
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.*;
-import io.vertx.ext.web.templ.JadeTemplateEngine;
-
+import java.awt.*;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Iterator;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import com.codingchili.ApplicationLauncher;
+import com.codingchili.Model.Configuration;
+import com.codingchili.Model.ElasticWriter;
+import com.codingchili.Model.FileParser;
+import com.codingchili.Model.ParserException;
+
+import io.vertx.core.*;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.ext.web.FileUpload;
+import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.StaticHandler;
+import io.vertx.ext.web.handler.TemplateHandler;
+import io.vertx.ext.web.templ.JadeTemplateEngine;
+
+import static com.codingchili.Model.FileParser.INDEX;
 
 /**
  * @author Robin Duda
- *
- * Manages the web interface and handles file uploads.
+ *         <p>
+ *         Manages the web interface and handles file uploads.
  */
 public class Website extends AbstractVerticle {
     private Logger logger = Logger.getLogger(getClass().getName());
@@ -26,6 +39,7 @@ public class Website extends AbstractVerticle {
     private static final String MESSAGE = "message";
     private static final String OFFSET = "offset";
     private static final String FILE = "file";
+    private static final String IMPORTED = "imported";
     private static final String NO_FILE_WAS_UPLOADED = "No file was uploaded.";
     private Vertx vertx;
 
@@ -37,17 +51,31 @@ public class Website extends AbstractVerticle {
     @Override
     public void start(Future<Void> start) {
         Router router = Router.router(vertx);
-        JadeTemplateEngine engine = JadeTemplateEngine.create();
-
         router.route().handler(BodyHandler.create());
 
         setRouterAPI(router);
+        router.route("/favicon.ico").handler(ctx -> ctx.response().end());
         router.route("/static/*").handler(StaticHandler.create());
-        router.route("/*").handler(TemplateHandler.create(engine));
 
-        vertx.createHttpServer().requestHandler(router::accept).listen(Configuration.WEB_PORT, done -> {
+        router.route("/*").handler(context -> {
+            context.put("version", ApplicationLauncher.version);
+            context.put("esVersion", ElasticWriter.getElasticVersion());
+            context.put("esURL", Configuration.getElasticURL());
+            context.next();
+        });
+
+        router.route("/*").handler(TemplateHandler.create(JadeTemplateEngine.create()));
+
+        vertx.createHttpServer().requestHandler(router::accept).listen(Configuration.getWebPort(), done -> {
             if (done.succeeded()) {
-                logger.info("Started website on port " + Configuration.WEB_PORT);
+                Configuration.setWebPort(done.result().actualPort());
+                logger.info("Started website on port " + Configuration.getWebPort());
+                logger.info("Attempting to open browser..");
+                try {
+                    Desktop.getDesktop().browse(new URI(Configuration.getWebsiteURL()));
+                } catch (IOException | URISyntaxException e) {
+                    logger.warning(e.getMessage());
+                }
                 start.complete();
             } else {
                 start.fail(done.cause());
@@ -63,14 +91,20 @@ public class Website extends AbstractVerticle {
                 FileUpload upload = context.fileUploads().iterator().next();
 
                 vertx.fileSystem().readFile(upload.uploadedFileName(), file -> {
-                    try {
-                        parse(file.result(), context.request().params());
-                        context.put(FILE, upload.fileName());
-                        context.reroute(DONE);
-                    } catch (ParserException e) {
-                        context.put(MESSAGE, traceToText(e));
-                        context.reroute(ERROR);
-                    }
+                    parse(file.result(), context.request().params(), upload.fileName(),
+                            Future.<Integer>future().setHandler(result -> {
+                                if (result.succeeded()) {
+                                    logger.info(String.format("Imported file %s successfully.", upload.fileName()));
+                                    context.put(FILE, upload.fileName());
+                                    context.put(IMPORTED, result.result());
+                                    context.reroute(DONE);
+                                } else {
+                                    context.put(MESSAGE, traceToText(result.cause()));
+                                    logger.log(Level.SEVERE, String.format("Failed to parse file %s.",
+                                            upload.fileName()), result.cause());
+                                    context.reroute(ERROR);
+                                }
+                            }));
                 });
             } else {
                 context.put(MESSAGE, NO_FILE_WAS_UPLOADED);
@@ -85,17 +119,22 @@ public class Website extends AbstractVerticle {
         return writer.toString();
     }
 
-    private void parse(Buffer buffer, MultiMap params) throws ParserException {
-        try {
-            int columnRow = Integer.parseInt(params.get(OFFSET));
-            FileParser parser = new FileParser(buffer.getBytes(), columnRow);
-            sendOutput(parser.toImportableObject());
-        } catch (NumberFormatException e) {
-            throw new ParserException(e);
-        }
-    }
-
-    private void sendOutput(JsonObject data) {
-        vertx.eventBus().send(Configuration.INDEXING_ELASTICSEARCH, data);
+    private void parse(Buffer buffer, MultiMap params, String fileName, Future<Integer> future) {
+        vertx.<Integer>executeBlocking(blocking -> {
+            try {
+                int columnRow = Integer.parseInt(params.get(OFFSET));
+                FileParser parser = new FileParser(buffer.getBytes(), columnRow, fileName);
+                vertx.eventBus().send(Configuration.INDEXING_ELASTICSEARCH,
+                        parser.toImportable(params.get(INDEX)), reply -> blocking.complete(parser.getImportedItems()));
+            } catch (ParserException | NumberFormatException e) {
+                blocking.fail(new ParserException(e));
+            }
+        }, false, done -> {
+            if (done.succeeded()) {
+                future.complete(done.result());
+            } else {
+                future.fail(done.cause());
+            }
+        });
     }
 }

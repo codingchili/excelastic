@@ -19,11 +19,12 @@ import static com.codingchili.Model.FileParser.ITEMS;
 @RunWith(VertxUnitRunner.class)
 public class TestParser {
     private static final int ROW_OFFSET = 5;
+    private static final String XLSX = ".xlsx";
 
     @Test
     public void failParseInvalid() throws Exception {
         try {
-            new FileParser(new byte[2048], 5);
+            new FileParser(new byte[2048], 5, XLSX);
             throw new Exception("Should fail for invalid bytes.");
         } catch (ParserException ignored) {
         }
@@ -31,8 +32,8 @@ public class TestParser {
 
     @Test
     public void succeedParseValid(TestContext context) throws ParserException, IOException {
-        FileParser parser = new FileParser(Files.readAllBytes(Paths.get("src/test/java/test.xlsx")), ROW_OFFSET);
-        JsonArray list = parser.toImportableObject().getJsonArray(ITEMS);
+        FileParser parser = new FileParser(Files.readAllBytes(Paths.get("src/test/java/test.xlsx")), ROW_OFFSET, XLSX);
+        JsonArray list = parser.toImportable("index").getJsonArray(ITEMS);
 
         context.assertEquals(2, list.size());
 

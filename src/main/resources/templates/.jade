@@ -8,27 +8,33 @@ html(lang='en')
         link(href='/static/css/bootstrap.min.css', rel='stylesheet')
         link(href='/static/css/style.css', rel='stylesheet')
     body
-        .container
+        span.glyphicon.glyphicon-plus(aria-hidden="true", data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Tooltip on bottom")
+        span.glyphicon.glyphicon-remove(aria-hidden="true", data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Tooltip on bottom")
+        | <div class="tooltip fade bottom" role="tooltip" id="tooltip89076" style="top: 43.3333px; left: 116.542px; display: block;"><div class="tooltip-arrow" style="left: 50%;"></div><div class="tooltip-inner">Tooltip on bottom</div></div>
+        .container.col-xs-10.col-xs-offset-1
             .jumbotron
-                h1 Excelastic
-                p Import XLSX files into ElasticSearch!
-            .col-xs-6.col-xs-offset-3
-                .panel.panel-info
-                    .panel-heading Upload XLSX File!
-                    .panel-body
-                        form#upload.form-horizontal(enctype='multipart/form-data', method='POST', action='/api/upload')
-                            fieldset
-                                .form-group
-                                    label.col-lg-2.control-label(for='index') Index
-                                    .col-lg-10
-                                        input#index.form-control(type='text', name='index', placeholder='generate date')
-                                .form-group
-                                    label.col-lg-2.control-label(for='offset') Title-row
-                                    .col-lg-10
-                                        input#offset.form-control(type='text', name='offset', value='1')
-                                label.btn.btn-block.btn-info.btn-file
-                                    | UPLOAD
-                                    input#file(type='file', name='file', style='display: none;')
-            script(src='/static/js/jquery-2.2.4.min.js')
-            script(src='/static/js/bootstrap.min.js')
-            script(src='/static/js/application.js')
+                h1 Excelastic #{context.version}
+                if (context.esVersion)
+                    p Import excel files into #[a(href=context.esURL)  ElasticSearch #{context.esVersion}]
+                else
+                    p not connected, #[a(href=".") refresh?]
+        div.col-xs-6.col-xs-offset-3
+            .panel.panel-info
+                .panel-heading Upload an .xlsx or .xls file!
+                .panel-body
+                    form#upload.form-horizontal(enctype='multipart/form-data', method='POST', action='/api/upload')
+                        fieldset
+                            .form-group
+                                label.col-lg-2.control-label(for='index') Index
+                                .col-lg-10
+                                    input#index.form-control(type='text', name='index', placeholder='generate date')
+                            .form-group
+                                label.col-lg-2.control-label(for='offset') Title-row
+                                .col-lg-10
+                                    input#offset.form-control(type='text', name='offset', value='1')
+                            label.btn.btn-block.btn-info.btn-file
+                                | UPLOAD
+                                input#file(type='file', name='file', style='display: none;')
+        script(src='/static/js/jquery-2.2.4.min.js')
+        script(src='/static/js/bootstrap.min.js')
+        script(src='/static/js/application.js')

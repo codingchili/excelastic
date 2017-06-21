@@ -44,7 +44,7 @@ public class TestWriter {
                 context.assertTrue(body.toString() != null);
                 async.complete();
             });
-        }).listen(Configuration.ELASTIC_PORT);
+        }).listen(Configuration.getElasticPort());
 
         vertx.eventBus().send(Configuration.INDEXING_ELASTICSEARCH, new JsonObject()
                 .put("items", new JsonArray().add(new JsonObject().put("test", true)))

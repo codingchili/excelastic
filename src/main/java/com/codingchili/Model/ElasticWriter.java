@@ -11,19 +11,24 @@ import io.vertx.core.json.JsonObject;
 
 /**
  * @author Robin Duda
- *
- * Writes json data to elasticsearch for indexing.
+ *         <p>
+ *         Writes json data to elasticsearch for indexing.
  */
 public class ElasticWriter extends AbstractVerticle {
     private static final String INDEX = "index";
     private static final String BULK = "/_bulk";
     private static final String ITEMS = "items";
+    private static String version = "";
+    private static final int poll = 5000;
+    private boolean connected = false;
     private Logger logger = Logger.getLogger(getClass().getName());
     private Vertx vertx;
 
     @Override
     public void init(Vertx vertx, Context context) {
         this.vertx = vertx;
+
+        vertx.setPeriodic(poll, this::pollElasticServer);
     }
 
     @Override
@@ -33,6 +38,7 @@ public class ElasticWriter extends AbstractVerticle {
         start.complete();
     }
 
+
     private void startSubmitListener() {
         vertx.eventBus().consumer(Configuration.INDEXING_ELASTICSEARCH, handler -> {
             logger.info("Received file object, starting import..");
@@ -40,13 +46,15 @@ public class ElasticWriter extends AbstractVerticle {
             String index = data.getString(INDEX);
 
             vertx.createHttpClient().post(
-                    Configuration.ELASTIC_PORT, Configuration.ELASTIC_HOST, index + BULK)
+                    Configuration.getElasticPort(), Configuration.getElasticHost(), index + BULK)
                     .handler(response -> {
                         logger.info(String.format("Submitted with result [%d] %s",
                                 response.statusCode(),
                                 response.statusMessage()));
 
-                        response.bodyHandler(body -> {});
+                        response.bodyHandler(body -> {
+                            handler.reply(body.toJsonObject());
+                        });
                     })
                     .end(bulkQuery(data.getJsonArray(ITEMS), index));
         });
@@ -65,5 +73,23 @@ public class ElasticWriter extends AbstractVerticle {
         }
 
         return query;
+    }
+
+    private void pollElasticServer(Long id) {
+        vertx.createHttpClient().get(Configuration.getElasticPort(), Configuration.getElasticHost(), "/",
+                response -> response.bodyHandler(buffer -> {
+                       version = buffer.toJsonObject().getJsonObject("version").getString("number");
+                        if (!connected) {
+                            logger.info(String.format("Connected to elasticsearch server %s", version));
+                            connected = true;
+                        }
+                    })).exceptionHandler(event -> {
+                    connected = false;
+                    logger.severe(event.getMessage());
+        }).end();
+    }
+
+    public static String getElasticVersion() {
+        return version;
     }
 }

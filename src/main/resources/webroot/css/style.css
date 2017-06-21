@@ -1,4 +1,13 @@
-a, a:hover, a:visited, a:active {
-    text-decoration: none;
-    color: rgba(0, 0, 0, 0.0);
+span.glyphicon {
+    font-size: 1.75em;
+    margin-left: 14px;
+    margin-top: 8px;
+}
+
+.glyphicon-remove {
+    color: red;
+}
+
+.glyphicon-plus {
+    color: green;
 }

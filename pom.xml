@@ -37,7 +37,7 @@
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.codingchili.Launcher</mainClass>
+                                    <mainClass>com.codingchili.ApplicationLauncher</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>

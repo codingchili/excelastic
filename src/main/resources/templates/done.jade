@@ -12,7 +12,7 @@ html(lang='en')
             .jumbotron
                 h1 Success!
                 p
-                    | File '#{context.file}' was uploaded successfully.
+                    | Imported #{context.imported} rows from '#{context.file}' successfully.
                     a(href='/')
                         button.btn.btn-success.btn-block ANOTHER FILE
         script(src='/static/js/jquery-2.2.4.min.js')

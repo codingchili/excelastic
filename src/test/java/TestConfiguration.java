@@ -13,9 +13,9 @@ public class TestConfiguration {
 
     @Test
     public void shouldLoadConfiguration(TestContext context) {
-        context.assertNotNull(Configuration.WEB_PORT);
-        context.assertNotNull(Configuration.ELASTIC_PORT);
-        context.assertNotNull(Configuration.ELASTIC_HOST);
+        context.assertNotNull(Configuration.getWebPort());
+        context.assertNotNull(Configuration.getElasticPort());
+        context.assertNotNull(Configuration.getElasticHost());
     }
 
 }

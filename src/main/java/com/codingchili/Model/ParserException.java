@@ -7,8 +7,11 @@ package com.codingchili.Model;
  */
 public class ParserException extends Throwable {
 
-    public ParserException(Exception e) {
+    public ParserException(Throwable e) {
         super(e);
     }
 
+    public ParserException(String message) {
+        super(message);
+    }
 }

@@ -2,14 +2,18 @@ package com.codingchili.Model;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.xssf.usermodel.XSSFRow;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Iterator;
+import java.util.logging.Logger;
 
 /**
  * @author Robin Duda
@@ -19,10 +23,12 @@ import java.util.Iterator;
 public class FileParser {
     public static final String INDEX = "index";
     public static final String ITEMS = "items";
+    private static final String OOXML = ".xlsx";
+    private static final String XML97 = ".xls";
+    private Logger logger = Logger.getLogger(getClass().getName());
     private JsonArray list = new JsonArray();
     private int columns;
     private int items;
-    private int offset;
 
     /**
      * Parses the contents of an XLSX into JSON.
@@ -30,27 +36,47 @@ public class FileParser {
      * @param bytes  bytes of an XLSX file.
      * @param offset row number containing column titles.
      */
-    public FileParser(byte[] bytes, int offset) throws ParserException {
+    public FileParser(byte[] bytes, int offset, String fileName) throws ParserException {
         offset -= 1; // convert excel row name to index.
         try {
-            XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(bytes));
-            XSSFSheet sheet = workbook.getSheetAt(0);
+            Workbook workbook = getWorkbook(bytes, fileName);
+            Sheet sheet = workbook.getSheetAt(0);
 
-            this.offset = offset;
             this.columns = getColumnCount(sheet.getRow(offset));
             this.items = getItemCount(sheet, offset);
 
             readRows(sheet, offset);
+            logger.info(String.format("Imported %d rows from file %s.", items, fileName));
         } catch (Exception e) {
             throw new ParserException(e);
         }
     }
 
-    public JsonObject toImportableObject() {
-        return new JsonObject().put(ITEMS, list).put(INDEX, offset);
+    private Workbook getWorkbook(byte[] bytes, String fileName) throws ParserException, IOException {
+        if (fileName.endsWith(OOXML)) {
+            return new XSSFWorkbook(new ByteArrayInputStream(bytes));
+        } else if (fileName.endsWith(XML97)) {
+            return new HSSFWorkbook(new ByteArrayInputStream(bytes));
+        } else {
+            throw new ParserException(
+                    String.format("Unrecognized file extension for file %s, expected %s or %s.",
+                            fileName, OOXML, XML97));
+        }
     }
 
-    private void readRows(XSSFSheet sheet, int columnRow) {
+    public JsonArray getList() {
+        return list;
+    }
+
+    public int getImportedItems() {
+        return items;
+    }
+
+    public JsonObject toImportable(String index) {
+        return new JsonObject().put(ITEMS, list).put(INDEX, index);
+    }
+
+    private void readRows(Sheet sheet, int columnRow) {
         String[] columns = getColumns(sheet.getRow(columnRow));
 
         for (int i = 0; i < items; i++) {
@@ -58,7 +84,7 @@ public class FileParser {
         }
     }
 
-    private String[] getColumns(XSSFRow row) {
+    private String[] getColumns(Row row) {
         String[] titles = new String[columns];
 
         for (int i = 0; i < titles.length; i++) {
@@ -67,7 +93,7 @@ public class FileParser {
         return titles;
     }
 
-    private int getColumnCount(XSSFRow row) {
+    private int getColumnCount(Row row) {
         Iterator<Cell> iterator = row.iterator();
         int count = 0;
 
@@ -83,7 +109,7 @@ public class FileParser {
         return count;
     }
 
-    private int getItemCount(XSSFSheet sheet, int offset) {
+    private int getItemCount(Sheet sheet, int offset) {
         int count = 0;
         Row row = sheet.getRow(offset + 1);
 
@@ -95,7 +121,7 @@ public class FileParser {
         return count;
     }
 
-    private JsonObject getRow(String[] titles, XSSFRow row) {
+    private JsonObject getRow(String[] titles, Row row) {
         JsonObject json = new JsonObject();
         int index = 0;
 
