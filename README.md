@@ -5,7 +5,9 @@ Parses XLSX files into ElasticSearch using column titles from specified row comb
 ## Prerequisites
 The application requires ElasticSearch as its output.
 
-ElasticSearch and Kibana (version 5.2.4) should not require any additional configuration or installation, just download and run from [Elastic](https://www.elastic.co/products).
+1. ElasticSearch (version 5+) should not require any additional configuration or installation, just download and run from [Elastic](https://www.elastic.co/products). 
+
+2. Download the latest release of excelastic-1.2.0.jar and the configuration.json (optional) file from [GitHub releases](https://github.com/codingchili/parser-excel-elasticsearch/releases).
 
 ## Running
 Running the application, filename and index is optional to import using terminal mode.
@@ -15,9 +17,9 @@ java -jar excelastic-1.2.0.jar <filename> <index>
 
 When the application successfully connects to the ElasticSearch server, the browser will automatically open a new tab.
 
-If any connection errors occur check that the ElasticSearch listen port matches with the elastic_port in the configuration file. Make sure that ElasticSearch is running by directing your browser at [localhost:9200](http://localhost:9200/_count).
+If any connection errors occur check that the ElasticSearch listen port matches with the elastic_port in the configuration file. Make sure that ElasticSearch is running by directing your browser at [localhost:9200](http://localhost:9200/).
 
-Compiling a new fatjar,
+Compiling a new fatjar and run tests,
 ```
 mvn clean package
 ```
