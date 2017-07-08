@@ -25,7 +25,7 @@ import static com.codingchili.Model.ElasticWriter.ES_STATUS;
  */
 public class ApplicationLauncher {
     private static final Logger logger = Logger.getLogger(ApplicationLauncher.class.getName());
-    public static String version = "1.2.0";
+    public static String version = "1.2.1";
     private Vertx vertx = Vertx.vertx();
     private String[] args;
 
