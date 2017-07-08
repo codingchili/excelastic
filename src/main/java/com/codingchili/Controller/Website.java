@@ -83,20 +83,24 @@ public class Website extends AbstractVerticle {
             Iterator<FileUpload> iterator = context.fileUploads().iterator();
 
             if (iterator.hasNext()) {
+                logger.info("Receiving uploaded file.. ");
                 FileUpload upload = context.fileUploads().iterator().next();
 
                 vertx.fileSystem().readFile(upload.uploadedFileName(), file -> {
                     parse(file.result(), context.request().params(), upload.fileName(),
                             Future.<Integer>future().setHandler(result -> {
                                 if (result.succeeded()) {
-                                    logger.info(String.format("Imported file %s successfully.", upload.fileName()));
-                                    context.put(INDEX, context.request().params().get(INDEX));
+                                    String index = context.request().params().get(INDEX);
+                                    logger.info(String.format("Imported file '%s' successfully into '%s'.",
+                                            upload.fileName(), index));
+
+                                    context.put(INDEX, index);
                                     context.put(FILE, upload.fileName());
                                     context.put(IMPORTED, result.result());
                                     context.reroute(DONE);
                                 } else {
                                     context.put(MESSAGE, traceToText(result.cause()));
-                                    logger.log(Level.SEVERE, String.format("Failed to parse file %s.",
+                                    logger.log(Level.SEVERE, String.format("Failed to parse file '%s'.",
                                             upload.fileName()), result.cause());
                                     context.reroute(ERROR);
                                 }

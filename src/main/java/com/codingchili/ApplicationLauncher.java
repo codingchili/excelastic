@@ -14,6 +14,7 @@ import com.codingchili.Model.FileParser;
 import com.codingchili.Model.ParserException;
 
 import io.vertx.core.*;
+import io.vertx.core.eventbus.MessageConsumer;
 
 import static com.codingchili.Model.ElasticWriter.ES_STATUS;
 
@@ -46,13 +47,15 @@ public class ApplicationLauncher {
                 if (args.length == 2) {
                     importFile(getFileName(), getIndexName());
                 } else {
-                    vertx.eventBus().consumer(ES_STATUS, message -> {
-                        logger.info("Attempting to open browser..");
+                    MessageConsumer<?> consumer = vertx.eventBus().consumer(ES_STATUS);
+                    consumer.handler(message -> {
+                        logger.info(String.format("Attempting to open browser.. [ES connected=%s]", message.body().toString()));
                         try {
                             Desktop.getDesktop().browse(new URI(Configuration.getWebsiteURL()));
                         } catch (IOException | URISyntaxException e) {
                             logger.warning(e.getMessage());
                         }
+                        consumer.pause();
                     });
                 }
             } else {

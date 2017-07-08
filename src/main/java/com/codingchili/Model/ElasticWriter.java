@@ -1,14 +1,10 @@
 package com.codingchili.Model;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.logging.Logger;
-
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Context;
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+
+import java.util.logging.Logger;
 
 import static com.codingchili.Model.FileParser.ITEMS;
 
@@ -49,35 +45,57 @@ public class ElasticWriter extends AbstractVerticle {
         vertx.eventBus().consumer(Configuration.INDEXING_ELASTICSEARCH, handler -> {
             JsonObject data = (JsonObject) handler.body();
             JsonArray items = data.getJsonArray(ITEMS);
-            String index = data.getString(INDEX);
-            CountDownLatch latch = new CountDownLatch(getBatchCount(items.size()));
+            Future<Void> starter = Future.future();
+            Future<Void> next = starter;
 
-            // performs one bulk request for each bucket of MAX_BATCH
+            // performs one bulk request for each bucket of MAX_BATCH serially.
             for (int i = 0; i < items.size(); i += MAX_BATCH) {
-                final int max = ((i + MAX_BATCH < items.size()) ? i + MAX_BATCH : items.size());
                 final int current = i;
-                vertx.createHttpClient().post(
-                        Configuration.getElasticPort(), Configuration.getElasticHost(), index + BULK)
-                        .handler(response -> {
-                            logger.info(String.format("Submitted items [%d -> %d] with result [%d] %s",
-                                    current, max - 1, response.statusCode(), response.statusMessage()));
-
-                            response.bodyHandler(body -> {
-                                latch.countDown();
-
-                                // complete successfully when all buckets are inserted.
-                                if (latch.getCount() == 0) {
-                                    handler.reply(null);
-                                }
-                            });
-                        }).exceptionHandler(exception -> handler.fail(500, exception.getMessage()))
-                        .end(bulkQuery(items, index, max, current));
+                final int max = ((current + MAX_BATCH < items.size()) ? current + MAX_BATCH : items.size());
+                next = next.compose(v -> submitForIndexing(items, data.getString(INDEX), current, max));
             }
+
+            // when the final submission completes complete the handler.
+            next.setHandler((v) -> {
+                if (v.succeeded()) {
+                    handler.reply(null);
+                } else {
+                    handler.fail(500, v.cause().getMessage());
+                }
+            });
+            starter.complete();
         });
     }
 
     /**
+     * Submits a subset of the given json array for indexing.
+     *
+     * @param items   items to be indexed
+     * @param index   the name of the index to use
+     * @param current the low bound for the given json items to import
+     * @param max     the high bound for the given json items to import
+     * @return a future completed when the indexing of the specified elements have completed.
+     */
+    private Future<Void> submitForIndexing(JsonArray items, String index, int current, int max) {
+        Future<Void> future = Future.future();
+        vertx.createHttpClient().post(
+                Configuration.getElasticPort(), Configuration.getElasticHost(), index + BULK)
+                .handler(response -> response.bodyHandler(body -> {
+
+                    float percent = (max * 1.0f / items.size()) * 100;
+                    logger.info(
+                            String.format("Submitted items [%d -> %d] of %d with result [%d] %s into '%s' [%.1f%%]",
+                                    current, max - 1, items.size(), response.statusCode(), response.statusMessage(), index, percent));
+
+                    future.complete();
+                })).exceptionHandler(exception -> future.fail(exception.getMessage()))
+                .end(bulkQuery(items, index, max, current));
+        return future;
+    }
+
+    /**
      * Determines the number of batches to bulk insert.
+     *
      * @param size the total number of items to insert
      * @return the number of batches required to submit the size
      */
@@ -87,9 +105,10 @@ public class ElasticWriter extends AbstractVerticle {
 
     /**
      * Builds a bulk query for insertion into elasticsearch
-     * @param list full list of all elements
-     * @param index the current item anchor
-     * @param max max upper bound of items to include in the bulk
+     *
+     * @param list    full list of all elements
+     * @param index   the current item anchor
+     * @param max     max upper bound of items to include in the bulk
      * @param current lower bound of items to include in the bulk
      * @return a payload encoded as json-lines.
      */
@@ -111,21 +130,23 @@ public class ElasticWriter extends AbstractVerticle {
     /**
      * Polls the elasticsearch server for version information. Sets connected if the server
      * is available.
+     *
      * @param id the id of the timer that triggered the request, not used.
      */
     private void pollElasticServer(Long id) {
         vertx.createHttpClient().get(Configuration.getElasticPort(), Configuration.getElasticHost(), "/",
                 response -> response.bodyHandler(buffer -> {
-                       version = buffer.toJsonObject().getJsonObject("version").getString("number");
-                        if (!connected) {
-                            logger.info(String.format("Connected to elasticsearch server %s at %s:%d",
-                                    version, Configuration.getElasticHost(), Configuration.getElasticPort()));
-                            connected = true;
-                            vertx.eventBus().send(ES_STATUS, connected);
-                        }
-                    })).exceptionHandler(event -> {
+                    version = buffer.toJsonObject().getJsonObject("version").getString("number");
+                    if (!connected) {
+                        logger.info(String.format("Connected to elasticsearch server %s at %s:%d",
+                                version, Configuration.getElasticHost(), Configuration.getElasticPort()));
+                        connected = true;
+                        vertx.eventBus().send(ES_STATUS, connected);
+                    }
+                })).exceptionHandler(event -> {
                     connected = false;
                     logger.severe(event.getMessage());
+                    vertx.eventBus().send(ES_STATUS, connected);
         }).end();
     }
 

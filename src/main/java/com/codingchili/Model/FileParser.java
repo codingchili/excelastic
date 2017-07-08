@@ -34,6 +34,7 @@ public class FileParser {
      * @param offset row number containing column titles.
      */
     public FileParser(byte[] bytes, int offset, String fileName) throws ParserException {
+        logger.info(String.format("Parsing file '%s' using titles from excel row %d..", fileName, offset));
         offset -= 1; // convert excel row name to index.
         try {
             Workbook workbook = getWorkbook(bytes, fileName);
