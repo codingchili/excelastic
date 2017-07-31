@@ -28,6 +28,7 @@ import static com.codingchili.Model.FileParser.INDEX;
  *         Manages the web interface and handles file uploads.
  */
 public class Website extends AbstractVerticle {
+    public static final String MAPPING = "mapping";
     private Logger logger = Logger.getLogger(getClass().getName());
     private static final String DONE = "/done";
     private static final String ERROR = "/error";
@@ -139,7 +140,7 @@ public class Website extends AbstractVerticle {
                 int columnRow = Integer.parseInt(params.get(OFFSET));
                 FileParser parser = new FileParser(buffer.getBytes(), columnRow, fileName);
                 vertx.eventBus().send(Configuration.INDEXING_ELASTICSEARCH,
-                        parser.toImportable(params.get(INDEX)), reply -> {
+                        parser.toImportable(params.get(INDEX), params.get(MAPPING)), reply -> {
                     if (reply.succeeded()) {
                         blocking.complete(parser.getImportedItems());
                     } else {

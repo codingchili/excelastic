@@ -37,7 +37,7 @@ public class ApplicationLauncher {
         this.args = args;
 
         logger.info(String.format("Starting excelastic %s..", version));
-        logger.info("to import files without the web interface use: <filename> <index>");
+        logger.info("to import files without the web interface use: <filename> <index> <mapping>");
         Future<Void> future = Future.future();
 
         future.setHandler(done -> {
@@ -74,6 +74,10 @@ public class ApplicationLauncher {
         return args[1];
     }
 
+    private String getMapping() {
+        return (args.length > 2) ? args[2] : "default";
+    }
+
     /**
      * Imports a file from the commandline.
      * @param fileName the name of the file to import.
@@ -87,7 +91,7 @@ public class ApplicationLauncher {
                 try {
                     FileParser parser = new FileParser(file.result().getBytes(), 1, fileName);
                     logger.info(String.format("File parsed, starting import to %s..", indexName));
-                    vertx.eventBus().send(Configuration.INDEXING_ELASTICSEARCH, parser.toImportable(indexName), done -> {
+                    vertx.eventBus().send(Configuration.INDEXING_ELASTICSEARCH, parser.toImportable(indexName, getMapping()), done -> {
                         if (done.succeeded()) {
                             logger.info("Import completed, shutting down.");
                         } else {

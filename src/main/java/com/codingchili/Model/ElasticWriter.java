@@ -1,11 +1,13 @@
 package com.codingchili.Model;
 
 import io.vertx.core.*;
+import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.logging.Logger;
 
+import static com.codingchili.Controller.Website.MAPPING;
 import static com.codingchili.Model.FileParser.ITEMS;
 
 /**
@@ -52,7 +54,7 @@ public class ElasticWriter extends AbstractVerticle {
             for (int i = 0; i < items.size(); i += MAX_BATCH) {
                 final int current = i;
                 final int max = ((current + MAX_BATCH < items.size()) ? current + MAX_BATCH : items.size());
-                next = next.compose(v -> submitForIndexing(items, data.getString(INDEX), current, max));
+                next = next.compose(v -> submitForIndexing(items, data, current, max));
             }
 
             // when the final submission completes complete the handler.
@@ -71,17 +73,17 @@ public class ElasticWriter extends AbstractVerticle {
      * Submits a subset of the given json array for indexing.
      *
      * @param items   items to be indexed
-     * @param index   the name of the index to use
+     * @param data   the data to import, contains index and template.
      * @param current the low bound for the given json items to import
      * @param max     the high bound for the given json items to import
      * @return a future completed when the indexing of the specified elements have completed.
      */
-    private Future<Void> submitForIndexing(JsonArray items, String index, int current, int max) {
+    private Future<Void> submitForIndexing(JsonArray items, JsonObject data, int current, int max) {
         Future<Void> future = Future.future();
-        vertx.createHttpClient().post(
-                Configuration.getElasticPort(), Configuration.getElasticHost(), index + BULK)
-                .handler(response -> response.bodyHandler(body -> {
+        String index = data.getString(INDEX);
+        String mapping = data.getString(MAPPING);
 
+        post(index + BULK).handler(response -> response.bodyHandler(body -> {
                     float percent = (max * 1.0f / items.size()) * 100;
                     logger.info(
                             String.format("Submitted items [%d -> %d] of %d with result [%d] %s into '%s' [%.1f%%]",
@@ -89,18 +91,12 @@ public class ElasticWriter extends AbstractVerticle {
 
                     future.complete();
                 })).exceptionHandler(exception -> future.fail(exception.getMessage()))
-                .end(bulkQuery(items, index, max, current));
+                .end(bulkQuery(items, index, mapping, max, current));
         return future;
     }
 
-    /**
-     * Determines the number of batches to bulk insert.
-     *
-     * @param size the total number of items to insert
-     * @return the number of batches required to submit the size
-     */
-    private int getBatchCount(int size) {
-        return (size / MAX_BATCH) + ((size % MAX_BATCH != 0) ? 1 : 0);
+    private HttpClientRequest post(String path) {
+        return vertx.createHttpClient().post(Configuration.getElasticPort(), Configuration.getElasticHost(), path);
     }
 
     /**
@@ -112,12 +108,12 @@ public class ElasticWriter extends AbstractVerticle {
      * @param current lower bound of items to include in the bulk
      * @return a payload encoded as json-lines.
      */
-    private String bulkQuery(JsonArray list, String index, int max, int current) {
+    private String bulkQuery(JsonArray list, String index, String mapping, int max, int current) {
         String query = "";
         JsonObject header = new JsonObject()
                 .put("index", new JsonObject()
                         .put("_index", index)
-                        .put("_type", "transactions"));
+                        .put("_type", mapping));
 
         for (int i = current; i < max; i++) {
             query += header.encode() + "\n";
@@ -134,8 +130,7 @@ public class ElasticWriter extends AbstractVerticle {
      * @param id the id of the timer that triggered the request, not used.
      */
     private void pollElasticServer(Long id) {
-        vertx.createHttpClient().get(Configuration.getElasticPort(), Configuration.getElasticHost(), "/",
-                response -> response.bodyHandler(buffer -> {
+         get("/").handler(handler -> handler.bodyHandler((buffer -> {
                     version = buffer.toJsonObject().getJsonObject("version").getString("number");
                     if (!connected) {
                         logger.info(String.format("Connected to elasticsearch server %s at %s:%d",
@@ -147,7 +142,11 @@ public class ElasticWriter extends AbstractVerticle {
                     connected = false;
                     logger.severe(event.getMessage());
                     vertx.eventBus().send(ES_STATUS, connected);
-        }).end();
+        })).end();
+    }
+
+    private HttpClientRequest get(String path) {
+        return vertx.createHttpClient().get(Configuration.getElasticPort(), Configuration.getElasticHost(), path);
     }
 
     public static String getElasticVersion() {

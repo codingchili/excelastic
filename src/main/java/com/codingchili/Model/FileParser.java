@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
+import static com.codingchili.Controller.Website.MAPPING;
+
 /**
  * @author Robin Duda
  *
@@ -82,10 +84,13 @@ public class FileParser {
      * converts the parsed list of items into a json object that includes the index name.
      * may be passed to the ElasticWriter.
      * @param index the name of the index to index to
+     * @param mapping the mapping to use for the object
      * @return an importable jsonobject.
      */
-    public JsonObject toImportable(String index) {
-        return new JsonObject().put(ITEMS, list).put(INDEX, index);
+    public JsonObject toImportable(String index, String mapping) {
+        return new JsonObject().put(ITEMS, list)
+                .put(INDEX, index)
+                .put(MAPPING, mapping);
     }
 
     /**
