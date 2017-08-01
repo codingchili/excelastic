@@ -44,7 +44,7 @@ public class ApplicationLauncher {
             if (done.succeeded()) {
                 logger.info("Successfully started application");
 
-                if (args.length >= 2) {
+                if (args.length > 1) {
                     importFile(getFileName(), getIndexName());
                 } else {
                     MessageConsumer<?> consumer = vertx.eventBus().consumer(ES_STATUS);

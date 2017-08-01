@@ -7,6 +7,7 @@ import com.codingchili.Model.FileParser;
 import com.codingchili.Model.ParserException;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -29,6 +30,7 @@ import static com.codingchili.Model.FileParser.INDEX;
  */
 public class Website extends AbstractVerticle {
     public static final String MAPPING = "mapping";
+    private static final int INDEXING_TIMEOUT = 300000;
     private Logger logger = Logger.getLogger(getClass().getName());
     private static final String DONE = "/done";
     private static final String ERROR = "/error";
@@ -140,7 +142,9 @@ public class Website extends AbstractVerticle {
                 int columnRow = Integer.parseInt(params.get(OFFSET));
                 FileParser parser = new FileParser(buffer.getBytes(), columnRow, fileName);
                 vertx.eventBus().send(Configuration.INDEXING_ELASTICSEARCH,
-                        parser.toImportable(params.get(INDEX), getMappingByParams(params)), reply -> {
+                        parser.toImportable(params.get(INDEX), getMappingByParams(params)),
+                        new DeliveryOptions().setSendTimeout(INDEXING_TIMEOUT),
+                        reply -> {
                     if (reply.succeeded()) {
                         blocking.complete(parser.getImportedItems());
                     } else {
