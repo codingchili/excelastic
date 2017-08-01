@@ -140,7 +140,7 @@ public class Website extends AbstractVerticle {
                 int columnRow = Integer.parseInt(params.get(OFFSET));
                 FileParser parser = new FileParser(buffer.getBytes(), columnRow, fileName);
                 vertx.eventBus().send(Configuration.INDEXING_ELASTICSEARCH,
-                        parser.toImportable(params.get(INDEX), params.get(MAPPING)), reply -> {
+                        parser.toImportable(params.get(INDEX), getMappingByParams(params)), reply -> {
                     if (reply.succeeded()) {
                         blocking.complete(parser.getImportedItems());
                     } else {
@@ -157,5 +157,9 @@ public class Website extends AbstractVerticle {
                 future.fail(done.cause());
             }
         });
+    }
+
+    private String getMappingByParams(MultiMap params) {
+        return (params.get(MAPPING).length() == 0) ? "default" : params.get(MAPPING);
     }
 }
