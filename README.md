@@ -10,9 +10,9 @@ The application requires ElasticSearch as its output.
 2. Download the latest release of excelastic-1.2.0.jar and the configuration.json (optional) file from [GitHub releases](https://github.com/codingchili/parser-excel-elasticsearch/releases).
 
 ## Running
-Running the application, filename and index is optional to import using terminal mode.
+Running the application, filename, index and template is optional: use to import from the terminal.
 ```
-java -jar excelastic-1.2.0.jar <filename> <index>
+java -jar excelastic-1.2.0.jar <filename> <index> <mapping>
 ```
 
 When the application successfully connects to the ElasticSearch server, the browser will automatically open a new tab.
