@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.codingchili.Model.ElasticWriter.INDEXING_TIMEOUT;
 import static com.codingchili.Model.FileParser.INDEX;
 
 /**
@@ -30,7 +31,6 @@ import static com.codingchili.Model.FileParser.INDEX;
  */
 public class Website extends AbstractVerticle {
     public static final String MAPPING = "mapping";
-    private static final int INDEXING_TIMEOUT = 300000;
     private Logger logger = Logger.getLogger(getClass().getName());
     private static final String DONE = "/done";
     private static final String ERROR = "/error";

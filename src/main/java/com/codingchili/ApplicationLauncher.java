@@ -14,9 +14,11 @@ import com.codingchili.Model.FileParser;
 import com.codingchili.Model.ParserException;
 
 import io.vertx.core.*;
+import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.MessageConsumer;
 
 import static com.codingchili.Model.ElasticWriter.ES_STATUS;
+import static com.codingchili.Model.ElasticWriter.INDEXING_TIMEOUT;
 
 /**
  * @author Robin Duda
@@ -91,7 +93,10 @@ public class ApplicationLauncher {
                 try {
                     FileParser parser = new FileParser(file.result().getBytes(), 1, fileName);
                     logger.info(String.format("File parsed, starting import to %s..", indexName));
-                    vertx.eventBus().send(Configuration.INDEXING_ELASTICSEARCH, parser.toImportable(indexName, getMapping()), done -> {
+                    vertx.eventBus().send(Configuration.INDEXING_ELASTICSEARCH,
+                            parser.toImportable(indexName, getMapping()),
+                            new DeliveryOptions().setSendTimeout(INDEXING_TIMEOUT),
+                            done -> {
                         if (done.succeeded()) {
                             logger.info("Import completed, shutting down.");
                         } else {

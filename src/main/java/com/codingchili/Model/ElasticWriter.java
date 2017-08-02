@@ -16,6 +16,7 @@ import static com.codingchili.Model.FileParser.ITEMS;
  *         Writes json data to elasticsearch for indexing.
  */
 public class ElasticWriter extends AbstractVerticle {
+    public static final int INDEXING_TIMEOUT = 300000;
     private static final String INDEX = "index";
     private static final String BULK = "/_bulk";
     private static final int POLL = 5000;
