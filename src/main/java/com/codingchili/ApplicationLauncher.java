@@ -27,7 +27,7 @@ import static com.codingchili.Model.ElasticWriter.INDEXING_TIMEOUT;
  */
 public class ApplicationLauncher {
     private static final Logger logger = Logger.getLogger(ApplicationLauncher.class.getName());
-    public static String version = "1.2.2";
+    public static String VERSION = "1.2.3";
     private Vertx vertx = Vertx.vertx();
     private String[] args;
 
@@ -38,7 +38,7 @@ public class ApplicationLauncher {
     public ApplicationLauncher(String[] args) {
         this.args = args;
 
-        logger.info(String.format("Starting excelastic %s..", version));
+        logger.info(String.format("Starting excelastic %s..", VERSION));
         logger.info("to import files without the web interface use: <filename> <index> <mapping>");
         Future<Void> future = Future.future();
 

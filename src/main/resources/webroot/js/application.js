@@ -1,15 +1,34 @@
+let websock = new WebSocket("ws://" + location.host + "/");
+let uploadId = '';
+
+websock.onmessage = (e) => {
+    let data = JSON.parse(e.data);
+    console.log(e.data);
+
+    if (data.uploadId === uploadId) {
+        $('#panelheader').text('Importing ' + $('#file').val().split('\\').pop() + ' into ' + $('#index').val());
+        $('#progress-bar').css('width', data.progress + '%');
+        $
+    }
+}
+
 $('#file').change(function () {
+    uploadId = Math.random().toString(36).substring(7);
     $('#upload').hide();
-    $('#panelheader').text('Uploading ' + $('#file').val().split('\\').pop() + ' into ' + $('#index').val());
+    $('#uploadId').val(uploadId);
+    $('#panelheader').text('Parsing ' + $('#file').val().split('\\').pop());
     $('#progress').show();
-    $('#upload').submit();
+    websock.send(JSON.stringify({'uploadId': uploadId}));
+
+    setTimeout(() => {
+        $('#upload').submit();
+    }, 500);
 });
 
 $(document).ready(function () {
     var date = new Date();
     $('#progress').hide();
     $('#index').val(date.toLocaleString('en-us', {month: 'long'}).toLowerCase() + '-' + date.getFullYear());
-    $('#progress-bar').css('animation', '0.2s linear 0s normal none infinite progress-bar-stripes');
     $(function () {
         $("[data-toggle='tooltip']").tooltip();
     });
@@ -20,7 +39,7 @@ $('#close-window').click(function () {
 });
 
 $('#add-window').click(function () {
-    window.open(window.location.href, '_blank');
+    window.open('http://' + location.host, '_blank');
 });
 
 $('#start-page').click(function () {

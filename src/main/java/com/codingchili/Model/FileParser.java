@@ -1,22 +1,29 @@
 package com.codingchili.Model;
 
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
-
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
 import static com.codingchili.Controller.Website.MAPPING;
+import static com.codingchili.Controller.Website.UPLOAD_ID;
+
+import io.vertx.core.MultiMap;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 /**
  * @author Robin Duda
- *
+ * <p>
  * Parses xlsx files into json objects.
  */
 public class FileParser {
@@ -46,7 +53,7 @@ public class FileParser {
             this.rows = getItemCount(sheet, offset);
 
             readRows(sheet, offset);
-            logger.info(String.format("Parsed %d rows from file %s.", rows -1, fileName));
+            logger.info(String.format("Parsed %d rows from file %s.", rows - 1, fileName));
         } catch (Exception e) {
             throw new ParserException(e);
         }
@@ -54,11 +61,12 @@ public class FileParser {
 
     /**
      * Returns a workbook implementation based on the extension of the filname.
-     * @param bytes bytes representing a workbook
+     *
+     * @param bytes    bytes representing a workbook
      * @param fileName the filename to determine a specific workbook implementation
      * @return a workbook implentation that supports the given file format
      * @throws ParserException when the file extension is unsupported
-     * @throws IOException when the given data is not a valid workbook
+     * @throws IOException     when the given data is not a valid workbook
      */
     private Workbook getWorkbook(byte[] bytes, String fileName) throws ParserException, IOException {
         if (fileName.endsWith(OOXML)) {
@@ -67,8 +75,8 @@ public class FileParser {
             return new HSSFWorkbook(new ByteArrayInputStream(bytes));
         } else {
             throw new ParserException(
-                    String.format("Unrecognized file extension for file %s, expected %s or %s.",
-                            fileName, OOXML, XML97));
+                String.format("Unrecognized file extension for file %s, expected %s or %s.",
+                    fileName, OOXML, XML97));
         }
     }
 
@@ -83,19 +91,21 @@ public class FileParser {
     /**
      * converts the parsed list of items into a json object that includes the index name.
      * may be passed to the ElasticWriter.
-     * @param index the name of the index to index to
+     *
+     * @param index upload index name.
      * @param mapping the mapping to use for the object
      * @return an importable jsonobject.
      */
     public JsonObject toImportable(String index, String mapping) {
         return new JsonObject().put(ITEMS, list)
-                .put(INDEX, index)
-                .put(MAPPING, mapping);
+            .put(INDEX, index)
+            .put(MAPPING, mapping);
     }
 
     /**
      * reads the rows in the given sheet
-     * @param sheet the sheet to read rows from
+     *
+     * @param sheet     the sheet to read rows from
      * @param columnRow the row to read from
      */
     private void readRows(Sheet sheet, int columnRow) {
@@ -108,6 +118,7 @@ public class FileParser {
 
     /**
      * retrieves the values of the column titles.
+     *
      * @param row that points to the column titles.
      * @return an array of the titles
      */
@@ -122,6 +133,7 @@ public class FileParser {
 
     /**
      * Returns the number of columns present on the given row.
+     *
      * @param row the row to read column count from.
      * @return the number of columns on the given row
      */
@@ -146,7 +158,8 @@ public class FileParser {
     /**
      * counts the number of rows to be imported taking into account the offset
      * of the title columns.
-     * @param sheet the sheet to read items from
+     *
+     * @param sheet  the sheet to read items from
      * @param offset the offset of the title columns
      * @return the number of rows minus the column title offset.
      */
@@ -164,8 +177,9 @@ public class FileParser {
 
     /**
      * retrieves a row as a json object.
+     *
      * @param titles the titles of the row.
-     * @param row the row to read values from.
+     * @param row    the row to read values from.
      * @return a jsonobject that maps titles to the column values.
      */
     private JsonObject getRow(String[] titles, Row row) {
@@ -173,18 +187,29 @@ public class FileParser {
         JsonObject json = new JsonObject();
         int index = 0;
 
-        for (Cell cell : row) {
-            switch (cell.getCellType()) {
-                case Cell.CELL_TYPE_STRING:
-                    json.put(titles[index], formatter.formatCellValue(cell));
-                    break;
-                case Cell.CELL_TYPE_NUMERIC:
-                    if (DateUtil.isCellDateFormatted(cell)) {
-                        json.put(titles[index], cell.getDateCellValue().toInstant().toString());
-                    } else {
-                        json.put(titles[index], cell.getNumericCellValue());
-                    }
-                    break;
+        for (int i = 0; i < row.getLastCellNum(); i++) {
+            Cell cell = row.getCell(i);
+            Object value = null;
+
+            if (cell != null) {
+                switch (cell.getCellType()) {
+                    case Cell.CELL_TYPE_STRING:
+                        value = formatter.formatCellValue(cell);
+                        break;
+                    case Cell.CELL_TYPE_NUMERIC:
+                        if (DateUtil.isCellDateFormatted(cell)) {
+                            value = cell.getDateCellValue().toInstant().toString();
+                        } else {
+                            value = cell.getNumericCellValue();
+                        }
+                        break;
+                }
+                // avoid indexing null or empty string, fails to index rows
+                // when date fields are empty and can lead to mappings being
+                // set up incorrectly if leading rows has missing data.
+                if (value != null && !(value.toString().length() == 0)) {
+                    json.put(titles[index], value);
+                }
             }
             index++;
         }

@@ -8,6 +8,7 @@ import io.vertx.core.json.JsonObject;
 import java.util.logging.Logger;
 
 import static com.codingchili.Controller.Website.MAPPING;
+import static com.codingchili.Controller.Website.UPLOAD_ID;
 import static com.codingchili.Model.FileParser.ITEMS;
 
 /**
@@ -16,12 +17,14 @@ import static com.codingchili.Model.FileParser.ITEMS;
  *         Writes json data to elasticsearch for indexing.
  */
 public class ElasticWriter extends AbstractVerticle {
-    public static final int INDEXING_TIMEOUT = 300000;
+    public static final int INDEXING_TIMEOUT = 3000000;
     private static final String INDEX = "index";
     private static final String BULK = "/_bulk";
     private static final int POLL = 5000;
     private static final int MAX_BATCH = 255;
     public static final String ES_STATUS = "es-status";
+    private static final String PROGRESS = "progress";
+    public static final String IMPORT_PROGRESS = "import.progress";
     private static boolean connected = false;
     private static String version = "";
     private Logger logger = Logger.getLogger(getClass().getName());
@@ -90,6 +93,10 @@ public class ElasticWriter extends AbstractVerticle {
                             String.format("Submitted items [%d -> %d] of %d with result [%d] %s into '%s' [%.1f%%]",
                                     current, max - 1, items.size(), response.statusCode(), response.statusMessage(), index, percent));
 
+                    vertx.eventBus().publish(IMPORT_PROGRESS, new JsonObject()
+                        .put(PROGRESS, percent)
+                        .put(UPLOAD_ID, data.getString(UPLOAD_ID)));
+
                     future.complete();
                 })).exceptionHandler(exception -> future.fail(exception.getMessage()))
                 .end(bulkQuery(items, index, mapping, max, current));
@@ -110,18 +117,17 @@ public class ElasticWriter extends AbstractVerticle {
      * @return a payload encoded as json-lines.
      */
     private String bulkQuery(JsonArray list, String index, String mapping, int max, int current) {
-        String query = "";
-        JsonObject header = new JsonObject()
+        StringBuilder query = new StringBuilder();
+        String header = new JsonObject()
                 .put("index", new JsonObject()
                         .put("_index", index)
-                        .put("_type", mapping));
+                        .put("_type", mapping)).encode() + "\n";
 
         for (int i = current; i < max; i++) {
-            query += header.encode() + "\n";
-            query += list.getJsonObject(i).encode() + "\n";
+            query.append(header).append(list.getJsonObject(i).encode()).append("\n");
         }
 
-        return query;
+        return query.toString();
     }
 
     /**
