@@ -12,7 +12,7 @@ The application requires ElasticSearch as its output.
 ## Running
 Running the application, filename, index and template is optional: use to import from the terminal.
 ```
-java -jar excelastic-1.2.0.jar <filename> <index> <mapping>
+java -Xmx1g -jar excelastic-1.2.3.jar <filename> <index> <mapping>
 ```
 
 When the application successfully connects to the ElasticSearch server, the browser will automatically open a new tab.
