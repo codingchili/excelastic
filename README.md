@@ -7,12 +7,14 @@ The application requires ElasticSearch as its output.
 
 1. ElasticSearch (version 5+) should not require any additional configuration or installation, just download and run from [Elastic](https://www.elastic.co/products). 
 
-2. Download the latest release of excelastic-1.2.0.jar and the configuration.json (optional) file from [GitHub releases](https://github.com/codingchili/parser-excel-elasticsearch/releases).
+2. Download the latest release of excelastic-1.2.3.jar and the configuration.json (optional) file from [GitHub releases](https://github.com/codingchili/parser-excel-elasticsearch/releases).
+
+Tested with ElasticSearch 5.6.2.
 
 ## Running
 Running the application, filename, index and template is optional: use to import from the terminal.
 ```
-java -jar excelastic-1.2.0.jar <filename> <index> <mapping>
+java -Xmx1g -jar excelastic-1.2.3.jar <filename> <index> <mapping>
 ```
 
 When the application successfully connects to the ElasticSearch server, the browser will automatically open a new tab.
