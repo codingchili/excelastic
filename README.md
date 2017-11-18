@@ -2,6 +2,13 @@
 
 Parses XLSX files into ElasticSearch using column titles from specified row combined with data in columns on each row. For use with Kibana or other visualization applications, example result using a transaction log in excel format  [image](https://raw.githubusercontent.com/codingchili/parser-banktrans-es/master/sample-redacted.png). The application comes with a [web interface](https://raw.githubusercontent.com/codingchili/parser-excel-elasticsearch/master/sample-ui.png) to simplify uploading.
 
+## Features
+- import excel (.xlsx/.xls) files into elasticsearch.
+- easy to use web interface, with support for commandline imports too.
+- csv files can be converted to .xlsx using office and then imported.
+- clear the index before importing, or append to existing index.
+- basic authentication when uploading from the application to elasticsearch.
+
 ## Prerequisites
 The application requires ElasticSearch as its output.
 
@@ -12,10 +19,11 @@ The application requires ElasticSearch as its output.
 Tested with ElasticSearch 5.6.2.
 
 ## Running
-Running the application, filename, index and template is optional: use to import from the terminal.
+Running the application, filename, index and mapping are required: use to import from the terminal.
 ```
-java -Xmx1g -jar excelastic-1.2.3.jar <filename> <index> <mapping>
+java -Xmx1g -jar excelastic-1.2.3.jar <filename> <index> <mapping> --clear
 ```
+If running with --clear, then the existing index will be cleared before the import starts.
 
 When the application successfully connects to the ElasticSearch server, the browser will automatically open a new tab.
 
@@ -30,11 +38,18 @@ mvn clean package
 
 ├── configuration.json
 
-
-**web_port** (8080) port that the webserver will listen on. 
-
-**elastic_port** (9200) port that ElasticSearch listens to, host is set to localhost. 
-
-**elastic_host** (localhost) address of the ElasticSearch server.
+The configuration file is placed in the same directory as the jar.
+An example of the configuration:
+```
+{
+  "web_port": 0,                    // the port the web interface listens on
+  "elastic_port": 9200,             // the port elasticsearch listens on
+  "elastic_host": "localhost",      // address to elasticsearch
+  "authentication": false,          // sends an "Authentication" header if true.
+  "basic": "username:password"      // if authentication is true this is used as basic authentication.
+}
+```
+If no configuration file is present the values in the above example will be used.
+Note that the comments cannot be included in the configuration file.
 
 If no configuration file is present a new configuration file will be created using the default values listed here.
