@@ -48,7 +48,8 @@ public class TestWriter {
 
         vertx.eventBus().send(Configuration.INDEXING_ELASTICSEARCH, new JsonObject()
                 .put("items", new JsonArray().add(new JsonObject().put("test", true)))
-                .put("index", "test-index"));
+                .put("index", "test-index")
+                .put("clear", false));
     }
 
 }
