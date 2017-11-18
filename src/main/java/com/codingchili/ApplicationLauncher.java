@@ -4,6 +4,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,7 +28,8 @@ import static com.codingchili.Model.ElasticWriter.INDEXING_TIMEOUT;
  */
 public class ApplicationLauncher {
     private static final Logger logger = Logger.getLogger(ApplicationLauncher.class.getName());
-    public static String VERSION = "1.2.3";
+    public static final String PARAM_CLEAR = "--clear";
+    public static String VERSION = "1.2.4";
     private Vertx vertx = Vertx.vertx();
     private String[] args;
 
@@ -76,6 +78,10 @@ public class ApplicationLauncher {
         return args[1];
     }
 
+    private Boolean clearExisting() {
+        return Arrays.stream(args).anyMatch(param -> param.equals(PARAM_CLEAR));
+    }
+
     private String getMapping() {
         return (args.length > 2) ? args[2] : "default";
     }
@@ -94,7 +100,7 @@ public class ApplicationLauncher {
                     FileParser parser = new FileParser(file.result().getBytes(), 1, fileName);
                     logger.info(String.format("File parsed, starting import to %s..", indexName));
                     vertx.eventBus().send(Configuration.INDEXING_ELASTICSEARCH,
-                            parser.toImportable(indexName, getMapping()),
+                            parser.toImportable(indexName, getMapping(), clearExisting()),
                             new DeliveryOptions().setSendTimeout(INDEXING_TIMEOUT),
                             done -> {
                         if (done.succeeded()) {

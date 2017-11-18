@@ -39,6 +39,8 @@ import io.vertx.ext.web.templ.JadeTemplateEngine;
 public class Website extends AbstractVerticle {
     public static final String MAPPING = "mapping";
     public static final String UPLOAD_ID = "uploadId";
+    public static final String OPTIONS = "options";
+    public static final String CLEAR = "clear";
     private Logger logger = Logger.getLogger(getClass().getName());
     private static final String DONE = "/done";
     private static final String ERROR = "/error";
@@ -171,8 +173,12 @@ public class Website extends AbstractVerticle {
             try {
                 int columnRow = Integer.parseInt(params.get(OFFSET));
                 FileParser parser = new FileParser(buffer.getBytes(), columnRow, fileName);
-                JsonObject data = parser.toImportable(params.get(INDEX), getMappingByParams(params))
-                    .put(UPLOAD_ID, params.get(UPLOAD_ID));
+                JsonObject data = parser.toImportable(
+                    params.get(INDEX),
+                    getMappingByParams(params),
+                    params.get(OPTIONS).equals(CLEAR));
+
+                data.put(UPLOAD_ID, params.get(UPLOAD_ID));
 
                 vertx.eventBus().send(INDEXING_ELASTICSEARCH, data, new DeliveryOptions().setSendTimeout(INDEXING_TIMEOUT),
                     reply -> {
@@ -183,7 +189,7 @@ public class Website extends AbstractVerticle {
                         }
                     });
             } catch (ParserException | NumberFormatException e) {
-                blocking.fail(new ParserException(e));
+                blocking.fail(e);
             }
         }, false, done -> {
             if (done.succeeded()) {

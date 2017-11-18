@@ -42,7 +42,7 @@ public class TestParser {
 
     private void testParseFile(TestContext context, String fileName) throws IOException, ParserException {
         FileParser parser = new FileParser(Files.readAllBytes(Paths.get(fileName)), ROW_OFFSET, fileName);
-        JsonArray list = parser.toImportable("index", "mapping").getJsonArray(ITEMS);
+        JsonArray list = parser.toImportable("index", "mapping", false).getJsonArray(ITEMS);
 
         context.assertEquals(2, list.size());
 

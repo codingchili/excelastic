@@ -33,6 +33,16 @@ html(lang='en')
                                 label.col-lg-2.control-label(for='offset') Title-row
                                 .col-lg-10
                                     input#offset.form-control(type='text', name='offset', value='1')
+                            .form-group
+                                label.col-lg-2.control-label(for='clear')
+                                .col-lg-6
+                                    .btn-group(data-toggle='buttons')
+                                        label.btn.btn-info.active
+                                            input(type='radio', value='add', name='options', checked='')
+                                            | Add values
+                                        label.btn.btn-info
+                                            input(type='radio', value='clear', name='options')
+                                            | Clear existing
                             label.btn.btn-block.btn-info.btn-file
                                 | UPLOAD
                                 input#file(type='file', name='file', style='display: none;')

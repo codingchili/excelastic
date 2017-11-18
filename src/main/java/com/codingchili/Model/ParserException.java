@@ -5,7 +5,7 @@ package com.codingchili.Model;
  *
  * Parser exception to be thrown when an error during xlsx parsing occurs.
  */
-public class ParserException extends Throwable {
+public class ParserException extends RuntimeException {
 
     public ParserException(Throwable e) {
         super(e);

@@ -14,10 +14,9 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import static com.codingchili.Controller.Website.CLEAR;
 import static com.codingchili.Controller.Website.MAPPING;
-import static com.codingchili.Controller.Website.UPLOAD_ID;
 
-import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -55,7 +54,11 @@ public class FileParser {
             readRows(sheet, offset);
             logger.info(String.format("Parsed %d rows from file %s.", rows - 1, fileName));
         } catch (Exception e) {
-            throw new ParserException(e);
+            if (e instanceof ParserException) {
+                throw (ParserException) e;
+            } else {
+                throw new ParserException(e);
+            }
         }
     }
 
@@ -94,10 +97,12 @@ public class FileParser {
      *
      * @param index upload index name.
      * @param mapping the mapping to use for the object
+     * @param clearExisting clears existing items before importing.
      * @return an importable jsonobject.
      */
-    public JsonObject toImportable(String index, String mapping) {
+    public JsonObject toImportable(String index, String mapping, Boolean clearExisting) {
         return new JsonObject().put(ITEMS, list)
+            .put(CLEAR, clearExisting)
             .put(INDEX, index)
             .put(MAPPING, mapping);
     }

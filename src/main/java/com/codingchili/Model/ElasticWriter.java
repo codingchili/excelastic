@@ -1,20 +1,25 @@
 package com.codingchili.Model;
 
-import io.vertx.core.*;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Context;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.logging.Logger;
 
-import static com.codingchili.Controller.Website.MAPPING;
-import static com.codingchili.Controller.Website.UPLOAD_ID;
+import static com.codingchili.Controller.Website.*;
 import static com.codingchili.Model.FileParser.ITEMS;
 
 /**
  * @author Robin Duda
- *         <p>
- *         Writes json data to elasticsearch for indexing.
+ * <p>
+ * Writes json data to elasticsearch for indexing.
  */
 public class ElasticWriter extends AbstractVerticle {
     public static final int INDEXING_TIMEOUT = 3000000;
@@ -51,33 +56,46 @@ public class ElasticWriter extends AbstractVerticle {
         vertx.eventBus().consumer(Configuration.INDEXING_ELASTICSEARCH, handler -> {
             JsonObject data = (JsonObject) handler.body();
             JsonArray items = data.getJsonArray(ITEMS);
-            Future<Void> starter = Future.future();
-            Future<Void> next = starter;
 
-            // performs one bulk request for each bucket of MAX_BATCH serially.
-            for (int i = 0; i < items.size(); i += MAX_BATCH) {
-                final int current = i;
-                final int max = ((current + MAX_BATCH < items.size()) ? current + MAX_BATCH : items.size());
-                next = next.compose(v -> submitForIndexing(items, data, current, max));
-            }
+            clearBeforeIndexing(done -> {
+                Future<Void> starter = Future.future();
+                Future<Void> next = starter;
 
-            // when the final submission completes complete the handler.
-            next.setHandler((v) -> {
-                if (v.succeeded()) {
-                    handler.reply(null);
-                } else {
-                    handler.fail(500, v.cause().getMessage());
+                // performs one bulk request for each bucket of MAX_BATCH serially.
+                for (int i = 0; i < items.size(); i += MAX_BATCH) {
+                    final int current = i;
+                    final int max = ((current + MAX_BATCH < items.size()) ? current + MAX_BATCH : items.size());
+                    next = next.compose(v -> submitForIndexing(items, data, current, max));
                 }
-            });
-            starter.complete();
+
+                // when the final submission completes complete the handler.
+                next.setHandler((v) -> {
+                    if (v.succeeded()) {
+                        handler.reply(null);
+                    } else {
+                        handler.fail(500, v.cause().getMessage());
+                    }
+                });
+                starter.complete();
+            }, data);
         });
+    }
+
+    private void clearBeforeIndexing(Handler<AsyncResult<?>> done, JsonObject data) {
+        if (data.getBoolean(CLEAR)) {
+            delete("/" + data.getString(INDEX)).handler(req -> {
+                done.handle(Future.succeededFuture());
+            }).end();
+        } else {
+            done.handle(Future.succeededFuture());
+        }
     }
 
     /**
      * Submits a subset of the given json array for indexing.
      *
      * @param items   items to be indexed
-     * @param data   the data to import, contains index and template.
+     * @param data    the data to import, contains index and template.
      * @param current the low bound for the given json items to import
      * @param max     the high bound for the given json items to import
      * @return a future completed when the indexing of the specified elements have completed.
@@ -88,23 +106,33 @@ public class ElasticWriter extends AbstractVerticle {
         String mapping = data.getString(MAPPING);
 
         post(index + BULK).handler(response -> response.bodyHandler(body -> {
-                    float percent = (max * 1.0f / items.size()) * 100;
-                    logger.info(
-                            String.format("Submitted items [%d -> %d] of %d with result [%d] %s into '%s' [%.1f%%]",
-                                    current, max - 1, items.size(), response.statusCode(), response.statusMessage(), index, percent));
+            float percent = (max * 1.0f / items.size()) * 100;
+            logger.info(
+                    String.format("Submitted items [%d -> %d] of %d with result [%d] %s into '%s' [%.1f%%]",
+                            current, max - 1, items.size(), response.statusCode(), response.statusMessage(), index, percent));
 
-                    vertx.eventBus().publish(IMPORT_PROGRESS, new JsonObject()
-                        .put(PROGRESS, percent)
-                        .put(UPLOAD_ID, data.getString(UPLOAD_ID)));
+            vertx.eventBus().publish(IMPORT_PROGRESS, new JsonObject()
+                    .put(PROGRESS, percent)
+                    .put(UPLOAD_ID, data.getString(UPLOAD_ID)));
 
-                    future.complete();
-                })).exceptionHandler(exception -> future.fail(exception.getMessage()))
+            future.complete();
+        })).exceptionHandler(exception -> future.fail(exception.getMessage()))
                 .end(bulkQuery(items, index, mapping, max, current));
         return future;
     }
 
     private HttpClientRequest post(String path) {
-        return vertx.createHttpClient().post(Configuration.getElasticPort(), Configuration.getElasticHost(), path);
+        HttpClientRequest client = vertx.createHttpClient()
+                .post(Configuration.getElasticPort(), Configuration.getElasticHost(), path);
+
+        addSecurityHeaders(client);
+        return client;
+    }
+
+    private void addSecurityHeaders(HttpClientRequest request) {
+        Configuration.getBasicAuth().ifPresent(auth -> {
+            request.putHeader(HttpHeaderNames.AUTHORIZATION, "Basic " + auth);
+        });
     }
 
     /**
@@ -137,23 +165,31 @@ public class ElasticWriter extends AbstractVerticle {
      * @param id the id of the timer that triggered the request, not used.
      */
     private void pollElasticServer(Long id) {
-         get("/").handler(handler -> handler.bodyHandler((buffer -> {
-                    version = buffer.toJsonObject().getJsonObject("version").getString("number");
-                    if (!connected) {
-                        logger.info(String.format("Connected to elasticsearch server %s at %s:%d",
-                                version, Configuration.getElasticHost(), Configuration.getElasticPort()));
-                        connected = true;
-                        vertx.eventBus().send(ES_STATUS, connected);
-                    }
-                })).exceptionHandler(event -> {
-                    connected = false;
-                    logger.severe(event.getMessage());
-                    vertx.eventBus().send(ES_STATUS, connected);
+        get("/").handler(handler -> handler.bodyHandler((buffer -> {
+            version = buffer.toJsonObject().getJsonObject("version").getString("number");
+            if (!connected) {
+                logger.info(String.format("Connected to elasticsearch server %s at %s:%d",
+                        version, Configuration.getElasticHost(), Configuration.getElasticPort()));
+                connected = true;
+                vertx.eventBus().send(ES_STATUS, connected);
+            }
+        })).exceptionHandler(event -> {
+            connected = false;
+            logger.severe(event.getMessage());
+            vertx.eventBus().send(ES_STATUS, connected);
         })).end();
     }
 
     private HttpClientRequest get(String path) {
-        return vertx.createHttpClient().get(Configuration.getElasticPort(), Configuration.getElasticHost(), path);
+        HttpClientRequest request = vertx.createHttpClient().get(Configuration.getElasticPort(), Configuration.getElasticHost(), path);
+        addSecurityHeaders(request);
+        return request;
+    }
+
+    private HttpClientRequest delete(String path) {
+        HttpClientRequest request = vertx.createHttpClient().delete(Configuration.getElasticPort(), Configuration.getElasticHost(), path);
+        addSecurityHeaders(request);
+        return request;
     }
 
     public static String getElasticVersion() {
