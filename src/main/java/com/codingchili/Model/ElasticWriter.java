@@ -1,6 +1,7 @@
 package com.codingchili.Model;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
@@ -125,13 +126,18 @@ public class ElasticWriter extends AbstractVerticle {
         HttpClientRequest client = vertx.createHttpClient()
                 .post(Configuration.getElasticPort(), Configuration.getElasticHost(), path);
 
-        addSecurityHeaders(client);
+        addHeaders(client);
         return client;
     }
 
-    private void addSecurityHeaders(HttpClientRequest request) {
+    private void addHeaders(HttpClientRequest client) {
+
+        // comply with ElasticSearch 6.0 - strict content type.
+        client.putHeader(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
+
+        // support basic authentication.
         Configuration.getBasicAuth().ifPresent(auth -> {
-            request.putHeader(HttpHeaderNames.AUTHORIZATION, "Basic " + auth);
+            client.putHeader(HttpHeaderNames.AUTHORIZATION, "Basic " + auth);
         });
     }
 
@@ -182,13 +188,13 @@ public class ElasticWriter extends AbstractVerticle {
 
     private HttpClientRequest get(String path) {
         HttpClientRequest request = vertx.createHttpClient().get(Configuration.getElasticPort(), Configuration.getElasticHost(), path);
-        addSecurityHeaders(request);
+        addHeaders(request);
         return request;
     }
 
     private HttpClientRequest delete(String path) {
         HttpClientRequest request = vertx.createHttpClient().delete(Configuration.getElasticPort(), Configuration.getElasticHost(), path);
-        addSecurityHeaders(request);
+        addHeaders(request);
         return request;
     }
 
