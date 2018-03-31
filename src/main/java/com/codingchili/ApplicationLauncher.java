@@ -29,7 +29,7 @@ import static com.codingchili.Model.ElasticWriter.INDEXING_TIMEOUT;
 public class ApplicationLauncher {
     private static final Logger logger = Logger.getLogger(ApplicationLauncher.class.getName());
     public static final String PARAM_CLEAR = "--clear";
-    public static String VERSION = "1.2.5";
+    public static String VERSION = "1.2.6";
     private Vertx vertx = Vertx.vertx();
     private String[] args;
 

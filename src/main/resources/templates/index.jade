@@ -4,10 +4,13 @@ html(lang='en')
     body
         include menu
         .container.col-xs-10.col-xs-offset-1.col-md-8.col-md-offset-2.col-lg-6.col-lg-offset-3
-            .jumbotron
+            .jumbotron(style="text-align: center;")
                 h1 Excelastic #{context.version}
                 if (context.connected)
                     p Import excel files into #[a(href=context.esURL)  ElasticSearch #{context.esVersion}]
+                    if (context.tls)
+                        span.badge.badge-pill.badge-primary(style="margin-top:-22px;")
+                            | TLS ENABLED
                 else
                     p.text-danger Not connected, #[a(href=".") refresh?]
         div.col-xs-10.col-xs-offset-1.col-lg-4.col-lg-offset-4

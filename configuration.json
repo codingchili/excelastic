@@ -2,6 +2,7 @@
   "web_port": 0,
   "elastic_port": 9200,
   "elastic_host": "localhost",
+  "elastic_tls": false,
   "authentication": false,
   "basic": "username:password"
 }

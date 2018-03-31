@@ -14,14 +14,14 @@ The application requires ElasticSearch as its output.
 
 1. ElasticSearch (version 5+/6+) should not require any additional configuration or installation, just download and run from [Elastic](https://www.elastic.co/products). 
 
-2. Download the latest release of excelastic-1.2.5.jar and the configuration.json (optional) file from [GitHub releases](https://github.com/codingchili/parser-excel-elasticsearch/releases).
+2. Download the latest release of excelastic-1.2.6.jar and the configuration.json (optional) file from [GitHub releases](https://github.com/codingchili/parser-excel-elasticsearch/releases).
 
 Tested with ElasticSearch 5.6.2 and 6.1.0.
 
 ## Running
 Running the application, filename, index and mapping are required: use to import from the terminal.
 ```
-java -Xmx1g -jar excelastic-1.2.3.jar <filename> <index> <mapping> --clear
+java -Xmx1g -jar excelastic-1.2.6.jar <filename> <index> <mapping> --clear
 ```
 If running with --clear, then the existing index will be cleared before the import starts.
 
@@ -45,6 +45,7 @@ An example of the configuration:
   "web_port": 0,                    // the port the web interface listens on
   "elastic_port": 9200,             // the port elasticsearch listens on
   "elastic_host": "localhost",      // address to elasticsearch
+  "elastic_tls": false,             // set to true to use tls when indexing
   "authentication": false,          // sends an "Authentication" header if true.
   "basic": "username:password"      // if authentication is true this is used as basic authentication.
 }

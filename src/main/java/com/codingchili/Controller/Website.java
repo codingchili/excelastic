@@ -71,6 +71,7 @@ public class Website extends AbstractVerticle {
             context.put("esVersion", ElasticWriter.getElasticVersion());
             context.put("esURL", Configuration.getElasticURL());
             context.put("connected", ElasticWriter.isConnected());
+            context.put("tls", Configuration.isElasticTLS());
             context.next();
         });
 

@@ -9,6 +9,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -45,7 +46,7 @@ public class ElasticWriter extends AbstractVerticle {
     @Override
     public void start(Future<Void> start) {
         startSubmitListener();
-        logger.info("Started elastic writer");
+        logger.info("Started elastic writer. tls = " + Configuration.isElasticTLS());
         start.complete();
         pollElasticServer(0L);
     }
@@ -123,9 +124,7 @@ public class ElasticWriter extends AbstractVerticle {
     }
 
     private HttpClientRequest post(String path) {
-        HttpClientRequest client = vertx.createHttpClient()
-                .post(Configuration.getElasticPort(), Configuration.getElasticHost(), path);
-
+        HttpClientRequest client = vertx.createHttpClient().post(getOptions(path));
         addHeaders(client);
         return client;
     }
@@ -139,6 +138,14 @@ public class ElasticWriter extends AbstractVerticle {
         Configuration.getBasicAuth().ifPresent(auth -> {
             client.putHeader(HttpHeaderNames.AUTHORIZATION, "Basic " + auth);
         });
+    }
+
+    private RequestOptions getOptions(String path) {
+        return new RequestOptions()
+                .setPort(Configuration.getElasticPort())
+                .setHost(Configuration.getElasticHost())
+                .setSsl(Configuration.isElasticTLS())
+                .setURI(path);
     }
 
     /**
@@ -187,13 +194,13 @@ public class ElasticWriter extends AbstractVerticle {
     }
 
     private HttpClientRequest get(String path) {
-        HttpClientRequest request = vertx.createHttpClient().get(Configuration.getElasticPort(), Configuration.getElasticHost(), path);
+        HttpClientRequest request = vertx.createHttpClient().get(getOptions(path));
         addHeaders(request);
         return request;
     }
 
     private HttpClientRequest delete(String path) {
-        HttpClientRequest request = vertx.createHttpClient().delete(Configuration.getElasticPort(), Configuration.getElasticHost(), path);
+        HttpClientRequest request = vertx.createHttpClient().delete(getOptions(path));
         addHeaders(request);
         return request;
     }

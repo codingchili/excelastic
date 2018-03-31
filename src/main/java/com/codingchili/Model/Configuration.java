@@ -22,6 +22,7 @@ public class Configuration {
     private static int WEB_PORT;
     private static boolean SECURITY;
     private static String BASIC_AUTH;
+    private static boolean ELASTIC_TLS;
 
     static {
         JsonObject configuration = getConfiguration();
@@ -30,7 +31,7 @@ public class Configuration {
         WEB_PORT = configuration.getInteger("web_port", 9999);
         SECURITY = configuration.getBoolean("authentication", false);
         BASIC_AUTH = configuration.getString("basic", "username:password");
-
+        ELASTIC_TLS = configuration.getBoolean("elastic_tls", false);
     }
 
     private static JsonObject getConfiguration() {
@@ -44,6 +45,10 @@ public class Configuration {
         }
     }
 
+    /**
+     * @return a basic auth encoded string of the configured username and password if
+     * security is enabled in the configuration. Otherwise empty.
+     */
     public static Optional<String> getBasicAuth()  {
         if (SECURITY) {
             return Optional.of(new String(Base64.getEncoder().encode(BASIC_AUTH.getBytes())));
@@ -52,14 +57,30 @@ public class Configuration {
         }
     }
 
+    /**
+     * @return true if connections to elasticsearch should use TLS.
+     */
+    public static boolean isElasticTLS() {
+        return ELASTIC_TLS;
+    }
+
+    /**
+     * @return the port that elasticsearch is running on.
+     */
     public static int getElasticPort() {
         return ELASTIC_PORT;
     }
 
+    /**
+     * @return the host of where elasticsearch is running.
+     */
     public static String getElasticHost() {
         return ELASTIC_HOST;
     }
 
+    /**
+     * @return the port of the web interface.
+     */
     public static int getWebPort() {
         return WEB_PORT;
     }
@@ -68,11 +89,21 @@ public class Configuration {
         WEB_PORT = webPort;
     }
 
+    /**
+     * @return the local url to the website.
+     */
     public static String getWebsiteURL() {
         return "http://localhost:" + getWebPort();
     }
 
+    /**
+     * @return the url to elasticsearch.
+     */
     public static String getElasticURL() {
-        return "http://" + ELASTIC_HOST + ":" + ELASTIC_PORT;
+        String protocol = "http";
+        if (ELASTIC_TLS) {
+            protocol = "https";
+        }
+        return protocol + "://" + ELASTIC_HOST + ":" + ELASTIC_PORT;
     }
 }
