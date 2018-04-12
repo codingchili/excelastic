@@ -21,12 +21,16 @@ The application requires ElasticSearch as its output.
 Tested with ElasticSearch 5.6.2 and 6.1.0.
 
 ## Running
-Running the application, filename, index and mapping are required: use to import from the terminal.
+Running the application, filename and index is required, to import from the terminal run:
 ```
 java -Xmx1g -jar excelastic-1.2.6.jar <filename> <index> <mapping> --clear
 ```
 If running with --clear, then the existing index will be cleared before the import starts.
 
+To run with the web interface, run the following in your terminal:
+```
+java -Xmx1g -jar excelastic-1.2.6.jar
+```
 When the application successfully connects to the ElasticSearch server, the browser will automatically open a new tab.
 
 If any connection errors occur check that the ElasticSearch listen port matches with the elastic_port in the configuration file. Make sure that ElasticSearch is running by directing your browser at [localhost:9200](http://localhost:9200/).
