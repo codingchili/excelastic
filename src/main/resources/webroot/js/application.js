@@ -16,7 +16,7 @@ $('#file').change(function () {
     uploadId = Math.random().toString(36).substring(7);
     $('#upload').hide();
     $('#uploadId').val(uploadId);
-    $('#panelheader').text('Parsing ' + $('#file').val().split('\\').pop());
+    $('#panelheader').text('Uploading ' + $('#file').val().split('\\').pop());
     $('#progress').show();
     websock.send(JSON.stringify({'uploadId': uploadId}));
 
