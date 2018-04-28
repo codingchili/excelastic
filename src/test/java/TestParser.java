@@ -7,24 +7,25 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-
-import static com.codingchili.Model.FileParser.ITEMS;
 
 /**
  * @author Robin Duda
  */
 @RunWith(VertxUnitRunner.class)
 public class TestParser {
-    private static final int ROW_OFFSET = 5;
+    public static final String TEST_XLSX_FILE = "src/test/java/test.xlsx";
+    public static final String TEST_XLS_FILE = "src/test/java/test.xls";
+    public static final String TEST_INVALID_FILE = "src/test/java/test_invalid.xlsx";
+    public static final int ROW_OFFSET = 5;
     private static final String XLSX = ".xlsx";
 
     @Test
     public void failParseInvalid() throws Exception {
         try {
-            new FileParser(new byte[2048], 5, XLSX);
+            new FileParser(new File(TEST_INVALID_FILE), 5, XLSX);
             throw new Exception("Should fail for invalid bytes.");
         } catch (ParserException ignored) {
         }
@@ -32,17 +33,25 @@ public class TestParser {
 
     @Test
     public void testParseOOXML(TestContext context) throws IOException, ParserException {
-        testParseFile(context, "src/test/java/test.xlsx");
+        testParseFile(context, TEST_XLSX_FILE);
     }
 
     @Test
     public void testParse2007(TestContext context) throws IOException, ParserException {
-        testParseFile(context, "src/test/java/test.xls");
+        testParseFile(context, TEST_XLS_FILE);
     }
 
     private void testParseFile(TestContext context, String fileName) throws IOException, ParserException {
-        FileParser parser = new FileParser(Files.readAllBytes(Paths.get(fileName)), ROW_OFFSET, fileName);
-        JsonArray list = parser.toImportable("index", "mapping", false).getJsonArray(ITEMS);
+        FileParser parser = new FileParser(
+                Paths.get(fileName).toFile(),
+                ROW_OFFSET,
+                fileName
+        );
+
+        parser.assertFileParsable();
+
+        JsonArray list = new JsonArray();
+        parser.parseRowRange(0, parser.getNumberOfElements(), list::add);
 
         context.assertEquals(2, list.size());
 

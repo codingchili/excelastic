@@ -1,5 +1,4 @@
-import com.codingchili.Model.Configuration;
-import com.codingchili.Model.ElasticWriter;
+import com.codingchili.Model.*;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -13,6 +12,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 /**
  * @author Robin Duda
  */
@@ -23,6 +27,7 @@ public class TestWriter {
     @Before
     public void setUp(TestContext context) {
         vertx = Vertx.vertx();
+        ImportEventCodec.registerOn(vertx);
         vertx.deployVerticle(new ElasticWriter(), context.asyncAssertSuccess());
     }
 
@@ -35,7 +40,7 @@ public class TestWriter {
     }
 
     @Test
-    public void shouldWriteToElasticPort(TestContext context) {
+    public void shouldWriteToElasticPort(TestContext context) throws IOException {
         Async async = context.async();
 
         vertx.createHttpServer().requestHandler(request -> {
@@ -46,10 +51,16 @@ public class TestWriter {
             });
         }).listen(Configuration.getElasticPort());
 
-        vertx.eventBus().send(Configuration.INDEXING_ELASTICSEARCH, new JsonObject()
-                .put("items", new JsonArray().add(new JsonObject().put("test", true)))
-                .put("index", "test-index")
-                .put("clear", false));
+        FileParser fileParser = new FileParser(
+                Paths.get(TestParser.TEST_XLS_FILE).toFile(),
+                TestParser.ROW_OFFSET,
+                "testFileName.xls");
+
+        vertx.eventBus().send(Configuration.INDEXING_ELASTICSEARCH, new ImportEvent()
+                .setParser(fileParser)
+                .setIndex("text-index")
+                .setClearExisting(false)
+                .setMapping("test-mapping"));
     }
 
 }
