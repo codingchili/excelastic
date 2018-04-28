@@ -18,7 +18,7 @@ import java.nio.file.Paths;
 public class TestParser {
     public static final String TEST_XLSX_FILE = "src/test/java/test.xlsx";
     public static final String TEST_XLS_FILE = "src/test/java/test.xls";
-    public static final String TEST_INVALID_FILE = "src/test/java/test_invalid.xlsx";
+    public static final String TEST_INVALID_FILE = "src/test/java/invalid.xlsx";
     public static final int ROW_OFFSET = 5;
     private static final String XLSX = ".xlsx";
 
