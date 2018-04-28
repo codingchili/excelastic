@@ -1,6 +1,6 @@
 # parser-excel-elasticsearch [![Build Status](https://travis-ci.org/codingchili/parser-excel-elasticsearch.svg?branch=master)](https://travis-ci.org/codingchili/parser-excel-elasticsearch)
 
-Parses XLSX files into ElasticSearch using column titles from specified row combined with data in columns on each row. For use with Kibana or other visualization applications, example result using a transaction log in excel format  [image](https://raw.githubusercontent.com/codingchili/parser-banktrans-es/master/sample-redacted.png). The application comes with a web-interface to simplify uploading.
+Parses XLSX files into ElasticSearch using column titles from a specified row combined with data in columns on each row. May be used with Kibana or other visualization applications, example result using a transaction log in excel format  [image](https://raw.githubusercontent.com/codingchili/parser-banktrans-es/master/sample-redacted.png). The application comes with a web-interface to simplify uploading.
 
 ![sample UI image](https://raw.githubusercontent.com/codingchili/parser-excel-elasticsearch/master/excelastic.png)
 
@@ -10,26 +10,30 @@ Parses XLSX files into ElasticSearch using column titles from specified row comb
 - csv files can be converted to .xlsx using office and then imported.
 - clear the index before importing, or append to existing index.
 - basic authentication when uploading from the application to elasticsearch.
+- support for importing to TLS enabled elasticsearch servers.
+- supports concurrent parsing of excel files and importing for better performance.
+- parses the whole file before starting the import - to make sure your index is not left in an undesired state.
 
 ## Prerequisites
 The application requires ElasticSearch as its output.
 
 1. ElasticSearch (version 5+/6+) should not require any additional configuration or installation, just download and run from [Elastic](https://www.elastic.co/products). 
 
-2. Download the latest release of excelastic-1.2.6.jar and the configuration.json (optional) file from [GitHub releases](https://github.com/codingchili/parser-excel-elasticsearch/releases).
+2. Grab the latest .jar file from [releases](https://github.com/codingchili/parser-excel-elasticsearch/releases).
 
-Tested with ElasticSearch 5.6.2 and 6.1.0.
+Tested with ElasticSearch 5.6.2 and 6.2.3.
 
 ## Running
+
 Running the application, filename and index is required, to import from the terminal run:
 ```
-java -Xmx1g -jar excelastic-1.2.6.jar <filename> <index> <mapping> --clear
+java -Xmx2g -jar excelastic-1.2.7.jar <fileName> <indexName> --mapping mappingName --clear
 ```
 If running with --clear, then the existing index will be cleared before the import starts.
 
 To run with the web interface, run the following in your terminal:
 ```
-java -Xmx1g -jar excelastic-1.2.6.jar
+java -Xmx2g -jar excelastic-1.2.7.jar
 ```
 When the application successfully connects to the ElasticSearch server, the browser will automatically open a new tab.
 
@@ -60,3 +64,16 @@ If no configuration file is present the values in the above example will be used
 Note that the comments cannot be included in the configuration file.
 
 If no configuration file is present a new configuration file will be created using the default values listed here.
+
+## Contributing
+
+If you want to contribute to this project, open an issue or pull request. ::
+
+In the 1.2.7 release we have cleaned up the code and added even more javadoc
+in order to promote contributions! :astonished:
+
+---
+
+Thanks to JetBrains for providing free open source licenses
+
+[![](documentation/images/logo_jetbrains.png)](http://www.jetbrains.com)[![](documentation/images/logo_intellij_idea.png)](http://www.jetbrains.com/idea/)
