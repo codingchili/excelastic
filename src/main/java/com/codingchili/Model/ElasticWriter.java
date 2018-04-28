@@ -1,22 +1,18 @@
 package com.codingchili.Model;
 
+import com.codingchili.logging.ApplicationLogger;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Context;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.http.RequestOptions;
-import io.vertx.core.json.JsonArray;
+import io.vertx.core.*;
+import io.vertx.core.http.*;
 import io.vertx.core.json.JsonObject;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
-import java.util.logging.Logger;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.codingchili.Controller.Website.*;
-import static com.codingchili.Model.FileParser.ITEMS;
+import static com.codingchili.Controller.Website.UPLOAD_ID;
 
 /**
  * @author Robin Duda
@@ -24,17 +20,18 @@ import static com.codingchili.Model.FileParser.ITEMS;
  * Writes json data to elasticsearch for indexing.
  */
 public class ElasticWriter extends AbstractVerticle {
+    public static final String IMPORT_PROGRESS = "import.progress";
+    public static final String ES_STATUS = "es-status";
     public static final int INDEXING_TIMEOUT = 3000000;
-    private static final String INDEX = "index";
+    public static final int MAX_BATCH = 128;
+
     private static final String BULK = "/_bulk";
     private static final int POLL = 5000;
-    private static final int MAX_BATCH = 255;
-    public static final String ES_STATUS = "es-status";
     private static final String PROGRESS = "progress";
-    public static final String IMPORT_PROGRESS = "import.progress";
     private static boolean connected = false;
     private static String version = "";
-    private Logger logger = Logger.getLogger(getClass().getName());
+
+    private ApplicationLogger logger = new ApplicationLogger(getClass());
     private Vertx vertx;
 
     @Override
@@ -46,7 +43,7 @@ public class ElasticWriter extends AbstractVerticle {
     @Override
     public void start(Future<Void> start) {
         startSubmitListener();
-        logger.info("Started elastic writer. tls = " + Configuration.isElasticTLS());
+        logger.onWriterStarted();
         start.complete();
         pollElasticServer(0L);
     }
@@ -56,71 +53,134 @@ public class ElasticWriter extends AbstractVerticle {
      */
     private void startSubmitListener() {
         vertx.eventBus().consumer(Configuration.INDEXING_ELASTICSEARCH, handler -> {
-            JsonObject data = (JsonObject) handler.body();
-            JsonArray items = data.getJsonArray(ITEMS);
+            ImportEvent event = (ImportEvent) handler.body();
 
             clearBeforeIndexing(done -> {
-                Future<Void> starter = Future.future();
-                Future<Void> next = starter;
 
-                // performs one bulk request for each bucket of MAX_BATCH serially.
-                for (int i = 0; i < items.size(); i += MAX_BATCH) {
-                    final int current = i;
-                    final int max = ((current + MAX_BATCH < items.size()) ? current + MAX_BATCH : items.size());
-                    next = next.compose(v -> submitForIndexing(items, data, current, max));
-                }
+                event.getParser().subscribe(new Subscriber<JsonObject>() {
+                    private AtomicInteger parsed = new AtomicInteger(0);
+                    private AtomicInteger sent = new AtomicInteger(0);
+                    private AtomicBoolean complete = new AtomicBoolean(false);
+                    private HttpClientRequest request = openChunkedRequest();
+                    private String header = createImportHeader(event);
+                    private Subscription subscription;
 
-                // when the final submission completes complete the handler.
-                next.setHandler((v) -> {
-                    if (v.succeeded()) {
-                        handler.reply(null);
-                    } else {
-                        handler.fail(500, v.cause().getMessage());
+                    private HttpClientRequest openChunkedRequest() {
+                        return post(event.getIndex() + BULK)
+                                .handler(response -> response.bodyHandler(body -> {
+
+                                    // update the progress on finished batch submission.
+                                    updateStatus(response, event, sent.get());
+
+                                    if (complete.get()) {
+                                        // signal completion over the cluster.
+                                        handler.reply(null);
+                                    } else {
+                                        // request more items - we dont do this until the current request
+                                        // is finished with a status code.
+                                        subscription.request(MAX_BATCH);
+                                    }
+                                })).exceptionHandler(this::onError).setChunked(true);
+                    }
+
+                    private void endChunkedRequest() {
+                        // ends the request forcing the remote to process all submitted items and
+                        // provide a status code before we continue.
+                        request.end();
+                    }
+
+                    @Override
+                    public void onSubscribe(Subscription subscription) {
+                        this.subscription = subscription;
+                        // we use -1 here to guarantee that there is only one simultaneous request in flight.
+                        // when the in-flight request is commited we only need to parse 1 element before we
+                        // can end the next chunked request.
+                        subscription.request(MAX_BATCH * 2 - 1);
+                    }
+
+                    @Override
+                    public void onNext(JsonObject entry) {
+                        vertx.runOnContext(on -> {
+                            writeToChunkedRequest(request, header, entry);
+
+                            int done = parsed.incrementAndGet();
+                            int total = event.getParser().getNumberOfElements();
+
+                            if (done % MAX_BATCH == 0 || done >= total) {
+                                sent.set(done);
+                                endChunkedRequest();
+
+                                if (done != total) {
+                                    request = openChunkedRequest();
+                                } else {
+                                    complete.set(true);
+                                    subscription.cancel();
+                                }
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) {
+                        logger.onError(throwable);
+                        handler.fail(500, ApplicationLogger.traceToText(throwable));
+                        subscription.cancel();
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        // do nothing until all items are indexed.
                     }
                 });
-                starter.complete();
-            }, data);
+            }, event);
         });
     }
 
-    private void clearBeforeIndexing(Handler<AsyncResult<?>> done, JsonObject data) {
-        if (data.getBoolean(CLEAR)) {
-            delete("/" + data.getString(INDEX)).handler(req -> {
+    /**
+     * Emits a status event to the console and any listening remote clients.
+     *
+     * @param response the http response returned from ending the last chunked write.
+     * @param event    the import event that is being processed.
+     * @param received the number of elements that has been indexed.
+     */
+    private void updateStatus(HttpClientResponse response, ImportEvent event, int received) {
+
+        float percent = (received * 1.0f / event.getParser().getNumberOfElements()) * 100;
+        logger.onImportedBatch(response, event, event.getParser().getNumberOfElements(), received, percent);
+
+        vertx.eventBus().publish(IMPORT_PROGRESS, new JsonObject()
+                .put(PROGRESS, percent)
+                .put(UPLOAD_ID, event.getUploadId()));
+    }
+
+    private String createImportHeader(ImportEvent event) {
+        return new JsonObject()
+                .put("index", new JsonObject()
+                        .put("_index", event.getIndex())
+                        .put("_type", event.getMapping())).encode() + "\n";
+    }
+
+    /**
+     * Builds a bulk query for insertion into elasticsearch
+     *
+     * @param request the request to stream the bulk insert into.
+     * @param header  the static header that indicates which index to import the item into.
+     * @param json    the current item to import into the index.
+     */
+    private void writeToChunkedRequest(HttpClientRequest request, String header, JsonObject json) {
+        request.write(header);
+        request.write(json.toBuffer());
+        request.write("\n");
+    }
+
+    private void clearBeforeIndexing(Handler<AsyncResult<?>> done, ImportEvent event) {
+        if (event.getClearExisting()) {
+            delete("/" + event.getIndex()).handler(req -> {
                 done.handle(Future.succeededFuture());
             }).end();
         } else {
             done.handle(Future.succeededFuture());
         }
-    }
-
-    /**
-     * Submits a subset of the given json array for indexing.
-     *
-     * @param items   items to be indexed
-     * @param data    the data to import, contains index and template.
-     * @param current the low bound for the given json items to import
-     * @param max     the high bound for the given json items to import
-     * @return a future completed when the indexing of the specified elements have completed.
-     */
-    private Future<Void> submitForIndexing(JsonArray items, JsonObject data, int current, int max) {
-        Future<Void> future = Future.future();
-        String index = data.getString(INDEX);
-        String mapping = data.getString(MAPPING);
-
-        post(index + BULK).handler(response -> response.bodyHandler(body -> {
-            float percent = (max * 1.0f / items.size()) * 100;
-            logger.info(
-                    String.format("Submitted items [%d -> %d] of %d with result [%d] %s into '%s' [%.1f%%]",
-                            current, max - 1, items.size(), response.statusCode(), response.statusMessage(), index, percent));
-
-            vertx.eventBus().publish(IMPORT_PROGRESS, new JsonObject()
-                    .put(PROGRESS, percent)
-                    .put(UPLOAD_ID, data.getString(UPLOAD_ID)));
-
-            future.complete();
-        })).exceptionHandler(exception -> future.fail(exception.getMessage()))
-                .end(bulkQuery(items, index, mapping, max, current));
-        return future;
     }
 
     private HttpClientRequest post(String path) {
@@ -149,29 +209,6 @@ public class ElasticWriter extends AbstractVerticle {
     }
 
     /**
-     * Builds a bulk query for insertion into elasticsearch
-     *
-     * @param list    full list of all elements
-     * @param index   the current item anchor
-     * @param max     max upper bound of items to include in the bulk
-     * @param current lower bound of items to include in the bulk
-     * @return a payload encoded as json-lines.
-     */
-    private String bulkQuery(JsonArray list, String index, String mapping, int max, int current) {
-        StringBuilder query = new StringBuilder();
-        String header = new JsonObject()
-                .put("index", new JsonObject()
-                        .put("_index", index)
-                        .put("_type", mapping)).encode() + "\n";
-
-        for (int i = current; i < max; i++) {
-            query.append(header).append(list.getJsonObject(i).encode()).append("\n");
-        }
-
-        return query.toString();
-    }
-
-    /**
      * Polls the elasticsearch server for version information. Sets connected if the server
      * is available.
      *
@@ -181,14 +218,13 @@ public class ElasticWriter extends AbstractVerticle {
         get("/").handler(handler -> handler.bodyHandler((buffer -> {
             version = buffer.toJsonObject().getJsonObject("version").getString("number");
             if (!connected) {
-                logger.info(String.format("Connected to elasticsearch server %s at %s:%d",
-                        version, Configuration.getElasticHost(), Configuration.getElasticPort()));
+                logger.onWriterConnected(version);
                 connected = true;
                 vertx.eventBus().send(ES_STATUS, connected);
             }
-        })).exceptionHandler(event -> {
+        })).exceptionHandler(error -> {
             connected = false;
-            logger.severe(event.getMessage());
+            logger.onError(error);
             vertx.eventBus().send(ES_STATUS, connected);
         })).end();
     }
