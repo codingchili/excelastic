@@ -74,6 +74,6 @@ in order to promote contributions! :astonished:
 
 ---
 
-Thanks to JetBrains for providing free open source licenses
+Thanks to JetBrains for providing free open source licenses!
 
-[![](documentation/images/logo_jetbrains.png)](http://www.jetbrains.com)[![](documentation/images/logo_intellij_idea.png)](http://www.jetbrains.com/idea/)
+[![](https://algeria20.com/wp-content/uploads/2017/11/jet.png)](http://www.jetbrains.com)
