@@ -1,6 +1,8 @@
 # parser-excel-elasticsearch [![Build Status](https://travis-ci.org/codingchili/parser-excel-elasticsearch.svg?branch=master)](https://travis-ci.org/codingchili/parser-excel-elasticsearch)
 
-Parses XLSX files into ElasticSearch using column titles from specified row combined with data in columns on each row. For use with Kibana or other visualization applications, example result using a transaction log in excel format  [image](https://raw.githubusercontent.com/codingchili/parser-banktrans-es/master/sample-redacted.png). The application comes with a [web interface](https://raw.githubusercontent.com/codingchili/parser-excel-elasticsearch/master/sample-ui.png) to simplify uploading.
+Parses XLSX files into ElasticSearch using column titles from specified row combined with data in columns on each row. For use with Kibana or other visualization applications, example result using a transaction log in excel format  [image](https://raw.githubusercontent.com/codingchili/parser-banktrans-es/master/sample-redacted.png). The application comes with a web-interface to simplify uploading.
+
+![sample UI image](https://raw.githubusercontent.com/codingchili/parser-excel-elasticsearch/master/excelastic.png)
 
 ## Features
 - import excel (.xlsx/.xls) files into elasticsearch.
@@ -19,12 +21,16 @@ The application requires ElasticSearch as its output.
 Tested with ElasticSearch 5.6.2 and 6.1.0.
 
 ## Running
-Running the application, filename, index and mapping are required: use to import from the terminal.
+Running the application, filename and index is required, to import from the terminal run:
 ```
 java -Xmx1g -jar excelastic-1.2.6.jar <filename> <index> <mapping> --clear
 ```
 If running with --clear, then the existing index will be cleared before the import starts.
 
+To run with the web interface, run the following in your terminal:
+```
+java -Xmx1g -jar excelastic-1.2.6.jar
+```
 When the application successfully connects to the ElasticSearch server, the browser will automatically open a new tab.
 
 If any connection errors occur check that the ElasticSearch listen port matches with the elastic_port in the configuration file. Make sure that ElasticSearch is running by directing your browser at [localhost:9200](http://localhost:9200/).
