@@ -1,6 +1,6 @@
 # parser-excel-elasticsearch [![Build Status](https://travis-ci.org/codingchili/parser-excel-elasticsearch.svg?branch=master)](https://travis-ci.org/codingchili/parser-excel-elasticsearch)
 
-Parses XLSX files into ElasticSearch using column titles from a specified row combined with data in columns on each row. May be used with Kibana or other visualization applications, example result using a transaction log in excel format  [image](https://raw.githubusercontent.com/codingchili/parser-banktrans-es/master/sample-redacted.png). The application comes with a web-interface to simplify uploading.
+Parses XLSX/XLS/CSV files into ElasticSearch using column titles from a specified row combined with data in columns on each row. May be used with Kibana or other visualization applications, example result using a transaction log in excel format  [image](https://raw.githubusercontent.com/codingchili/parser-banktrans-es/master/sample-redacted.png). The application comes with a web-interface to simplify uploading.
 
 ![sample UI image](https://raw.githubusercontent.com/codingchili/parser-excel-elasticsearch/master/excelastic.png)
 
@@ -21,7 +21,7 @@ The application requires ElasticSearch as its output.
 
 2. Grab the latest .jar file from [releases](https://github.com/codingchili/parser-excel-elasticsearch/releases).
 
-Tested with ElasticSearch 5.6.2 and 6.2.3.
+Tested with ElasticSearch 5.6.2 and 6.4.2.
 
 ## Running
 
