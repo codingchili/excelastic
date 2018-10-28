@@ -170,9 +170,9 @@ public class Website extends AbstractVerticle {
      */
     private void parse(String uploadedFileName, MultiMap params, String fileName, Future<Integer> future) {
         vertx.executeBlocking(blocking -> {
+            FileParser parser = ParserFactory.getByFilename(fileName);
             try {
                 ImportEvent event = ImportEvent.fromParams(params);
-                FileParser parser = ParserFactory.getByFilename(fileName);
                 parser.setFileData(uploadedFileName, event.getOffset(), fileName);
 
                 parser.initialize();
@@ -189,6 +189,8 @@ public class Website extends AbstractVerticle {
                         });
             } catch (FileNotFoundException | ParserException | NumberFormatException e) {
                 blocking.fail(e);
+            } finally {
+                parser.free();
             }
         }, false, future);
     }

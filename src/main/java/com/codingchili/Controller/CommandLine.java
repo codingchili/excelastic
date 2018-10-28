@@ -45,8 +45,8 @@ public class CommandLine {
     private void importFile(ImportEvent event, String fileName) {
         logger.loadingFromFilesystem(fileName);
         logger.parsingStarted();
+        FileParser parser = ParserFactory.getByFilename(fileName);
         try {
-            FileParser parser = ParserFactory.getByFilename(fileName);
             parser.setFileData(fileName, 1, fileName);
 
             event.setParser(parser);
@@ -66,6 +66,8 @@ public class CommandLine {
             logger.onParseFailed(fileName, e);
         } catch (FileNotFoundException e) {
             logger.onFileLoadFailed(fileName, e);
+        } finally {
+            parser.free();
         }
     }
 

@@ -23,6 +23,8 @@ public class ExcelParser implements FileParser {
     private static final String XML97 = ".xls";
     private ApplicationLogger logger = new ApplicationLogger(getClass());
     private String fileName;
+    private File file;
+    private Workbook workbook;
     private Sheet sheet;
     private int columns;
     private int offset;
@@ -32,12 +34,12 @@ public class ExcelParser implements FileParser {
     public void setFileData(String localFileName, int offset, String fileName)
             throws ParserException, FileNotFoundException {
 
-        File file = new File(localFileName);
+        file = new File(localFileName);
         offset -= 1; // convert excel row number to 0-based index.
 
         if (file.exists()) {
             try {
-                Workbook workbook = getWorkbook(file, fileName);
+                this.workbook = getWorkbook(file, fileName);
                 this.sheet = workbook.getSheetAt(0);
                 this.offset = offset;
                 this.fileName = fileName;
@@ -131,6 +133,15 @@ public class ExcelParser implements FileParser {
         readRows(consumer, begin, begin + count, false);
     }
 
+
+    @Override
+    public void free() {
+        try {
+            workbook.close();
+        } catch (IOException e) {
+            logger.onError(e);
+        }
+    }
 
     @Override
     public int getNumberOfElements() {

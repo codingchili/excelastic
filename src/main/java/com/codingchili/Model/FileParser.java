@@ -39,4 +39,9 @@ public interface FileParser extends Publisher<JsonObject> {
      */
     int getNumberOfElements();
 
+
+    /**
+     * Releases any resources associated with the FileParser.
+     */
+    void free();
 }

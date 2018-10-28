@@ -1,5 +1,6 @@
 package com.codingchili.Model;
 
+import com.codingchili.logging.ApplicationLogger;
 import io.vertx.core.json.JsonObject;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -10,6 +11,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 
 /**
  * @author Robin Duda
@@ -26,6 +28,7 @@ public class CSVParser implements FileParser {
     private static final char TOKEN_QUOTE = '\"';
     private static final char TOKEN_SEPARATOR = ',';
 
+    private ApplicationLogger logger = new ApplicationLogger(getClass());
     private ByteBuffer buffer = ByteBuffer.allocate(MAX_LINE_LENGTH);
     private JsonObject headers = new JsonObject();
     private Iterator<String> header;
@@ -179,6 +182,15 @@ public class CSVParser implements FileParser {
     @Override
     public int getNumberOfElements() {
         return rows;
+    }
+
+    @Override
+    public void free() {
+        try {
+            file.close();
+        } catch (IOException e) {
+            logger.onError(e);
+        }
     }
 
     @Override
