@@ -211,4 +211,8 @@ public class ApplicationLogger {
         throwable.printStackTrace(new PrintWriter(writer));
         return writer.toString();
     }
+
+    public void websiteStarted(int webPort) {
+        logger.info("Started website on port " + webPort);
+    }
 }

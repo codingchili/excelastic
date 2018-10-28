@@ -1,0 +1,1 @@
+envsubst < configuration.json > configuration.json && java -jar excelastic.jar

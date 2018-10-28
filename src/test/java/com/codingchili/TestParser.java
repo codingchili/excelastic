@@ -101,6 +101,7 @@ public class TestParser {
                     context.assertEquals("cell " + (ROW_OFFSET + 1 + i) + "." + 2, json.getString("Column 2"));
                     context.assertEquals("cell " + (ROW_OFFSET + 1 + i) + "." + 3, json.getString("Column 3"));
                 }
+                parser.free();
             }
         });
     }

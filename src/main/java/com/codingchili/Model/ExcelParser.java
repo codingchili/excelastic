@@ -138,6 +138,7 @@ public class ExcelParser implements FileParser {
     public void free() {
         try {
             workbook.close();
+            file.delete();
         } catch (IOException e) {
             logger.onError(e);
         }
