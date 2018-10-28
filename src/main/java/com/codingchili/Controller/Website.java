@@ -20,7 +20,7 @@ import java.util.logging.Logger;
 import static com.codingchili.ApplicationLauncher.VERSION;
 import static com.codingchili.Model.Configuration.INDEXING_ELASTICSEARCH;
 import static com.codingchili.Model.ElasticWriter.*;
-import static com.codingchili.Model.FileParser.INDEX;
+import static com.codingchili.Model.ExcelParser.INDEX;
 
 /**
  * @author Robin Duda
@@ -172,8 +172,10 @@ public class Website extends AbstractVerticle {
         vertx.executeBlocking(blocking -> {
             try {
                 ImportEvent event = ImportEvent.fromParams(params);
-                FileParser parser = new FileParser(new File(uploadedFileName), event.getOffset(), fileName);
-                parser.assertFileParsable();
+                FileParser parser = ParserFactory.getByFilename(fileName);
+                parser.setFileData(uploadedFileName, event.getOffset(), fileName);
+
+                parser.initialize();
                 event.setParser(parser);
 
                 // submit an import event.

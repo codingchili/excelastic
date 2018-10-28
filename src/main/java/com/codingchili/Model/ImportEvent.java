@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import static com.codingchili.Controller.Website.UPLOAD_ID;
-import static com.codingchili.Model.FileParser.INDEX;
+import static com.codingchili.Model.ExcelParser.INDEX;
 
 /**
  * @author Robin Duda
@@ -53,7 +53,7 @@ public class ImportEvent {
         return new ImportEvent()
                 .setIndex(args[1])
                 .setOffset(getArgParamValue(args, ARG_OFFSET).map(Integer::parseInt).orElse(1))
-                .setClearExisting(Arrays.stream(args).anyMatch(param -> param.equals(ARG_CLEAR)))
+                .setClearExisting(Arrays.asList(args).contains(ARG_CLEAR))
                 .setMapping(getArgParamValue(args, ARG_MAPPING).orElse("default"));
     }
 

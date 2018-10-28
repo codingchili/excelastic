@@ -46,9 +46,11 @@ public class CommandLine {
         logger.loadingFromFilesystem(fileName);
         logger.parsingStarted();
         try {
-            FileParser parser = new FileParser(new File(fileName), 1, fileName);
+            FileParser parser = ParserFactory.getByFilename(fileName);
+            parser.setFileData(fileName, 1, fileName);
+
             event.setParser(parser);
-            parser.assertFileParsable();
+            parser.initialize();
 
             logger.importStarted(event.getIndex());
             vertx.eventBus().send(Configuration.INDEXING_ELASTICSEARCH, event, getDeliveryOpts(),

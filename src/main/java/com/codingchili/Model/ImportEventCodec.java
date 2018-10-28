@@ -7,7 +7,7 @@ import io.vertx.core.eventbus.MessageCodec;
 /**
  * @author Robin Duda
  * <p>
- * This codec is used to transfer a {@link FileParser} reference over the local event bus.
+ * This codec is used to transfer a {@link ExcelParser} reference over the local event bus.
  */
 public class ImportEventCodec implements MessageCodec<ImportEvent, ImportEvent> {
 
