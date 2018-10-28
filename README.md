@@ -27,13 +27,13 @@ Tested with ElasticSearch 5.6.2 and 6.4.2.
 
 Running the application, filename and index is required, to import from the terminal run:
 ```
-java -Xmx2g -jar excelastic-1.3.0.jar <fileName> <indexName> --mapping mappingName --clear
+java -Xmx2g -jar excelastic.jar <fileName> <indexName> --mapping mappingName --clear
 ```
 If running with --clear, then the existing index will be cleared before the import starts.
 
 To run with the web interface, run the following in your terminal:
 ```
-java -Xmx2g -jar excelastic-1.3.0.jar
+java -Xmx2g -jar excelastic.jar
 ```
 When the application successfully connects to the ElasticSearch server, the browser will automatically open a new tab.
 
