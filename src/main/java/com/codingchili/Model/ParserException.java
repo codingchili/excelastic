@@ -7,6 +7,10 @@ package com.codingchili.Model;
  */
 public class ParserException extends RuntimeException {
 
+    public ParserException(Throwable e, long index) {
+        super("parsing error at row " + index, e);
+    }
+
     public ParserException(Throwable e) {
         super(e);
     }

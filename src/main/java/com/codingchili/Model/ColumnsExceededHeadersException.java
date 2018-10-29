@@ -10,10 +10,10 @@ public class ColumnsExceededHeadersException extends ParserException {
     /**
      * @param values number of values encountered
      * @param headers the number of headers on the first row.
-     * @param index the line in the file.
+     * @param row the line in the file.
      */
-    public ColumnsExceededHeadersException(int values, int headers, int index) {
+    public ColumnsExceededHeadersException(int values, int headers, long row) {
         super(String.format("Encountered too many values (%d) on row %d, expected to match headers (%d).",
-                values, index, headers));
+                values, row, headers));
     }
 }

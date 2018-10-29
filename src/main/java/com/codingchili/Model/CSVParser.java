@@ -18,8 +18,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Parses CSV files.
  */
 public class CSVParser implements FileParser {
-    private static final int MAX_LINE_LENGTH = 16384;
-    private static final int PAGE_16MB = 16777216;
+    private static final int MAX_LINE_LENGTH = 524288;
+    private static long MAP_SIZE = Integer.MAX_VALUE / 4;
 
     private static final char TOKEN_NULL = '\0';
     private static final char TOKEN_CR = '\r';
@@ -32,21 +32,52 @@ public class CSVParser implements FileParser {
     private JsonObject headers = new JsonObject();
     private Iterator<String> header;
     private RandomAccessFile file;
-    private MappedByteBuffer map;
+    private MappedByteBuffer[] maps;
     private long fileSize;
-    private int index = 0;
+    private long index = 0;
     private int rows = 0;
+    private long row = 0;
 
     @Override
-    public void setFileData(String localFileName, int offset, String fileName) throws FileNotFoundException {
+    public void setFileData(String localFileName, int _unused, String fileName) throws FileNotFoundException {
         file = new RandomAccessFile(localFileName, "rw");
+        FileChannel channel = file.getChannel();
         try {
-            map = file.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, PAGE_16MB);
+            maps = new MappedByteBuffer[(int) (file.length() / MAP_SIZE) + 1];
+
+            for (int i = 0; i < maps.length; i++) {
+                long offset = i * MAP_SIZE;
+
+                maps[i] = channel.map(FileChannel.MapMode.READ_ONLY,
+                        offset,
+                        MAP_SIZE);
+            }
+
             fileSize = file.length();
             readRowCount();
             readHeaders();
-        } catch (IOException e) {
-            throw new ParserException(e);
+
+        } catch (Throwable e) {
+            throw new ParserException(e, row);
+        }
+    }
+
+    public static void setMaxMapSize(Integer bytes) {
+        MAP_SIZE = bytes;
+    }
+
+    private byte get() {
+        int page = (int) (index / MAP_SIZE);
+        int offset = (int) (index - (page * MAP_SIZE));
+        index++;
+        return maps[page].get(offset);
+    }
+
+    private void reset() {
+        index = 0;
+        row = 0;
+        for (MappedByteBuffer map : maps) {
+            map.position(0);
         }
     }
 
@@ -57,28 +88,31 @@ public class CSVParser implements FileParser {
 
     @Override
     public void initialize() {
-        index = 0;
-        map.position(0);
+        reset();
+
         readRow(); // skip headers row.
         for (int i = 0; i < rows; i++) {
             readRow();
         }
     }
 
-    private int readRowCount() {
-        for (int i = map.position(); i < fileSize; i++) {
-            if (map.get(i) == '\n') {
+    private void readRowCount() {
+        reset();
+
+        for (long i = 0; i < fileSize; i++) {
+            if (get() == '\n') {
                 rows++;
+                row = rows;
             }
         }
-        return rows;
     }
 
-    private void readHeaders() throws IOException {
-        map.position(0);
+    private void readHeaders() {
+        reset();
 
-        for (int i = map.position(); i < file.length(); i++) {
-            if (map.get(i) == '\n') {
+        for (long i = 0; i < fileSize; i++) {
+            byte current = get();
+            if (current == '\n') {
                 Arrays.stream(new String(buffer.array()).split(","))
                         .map(header -> header.replaceAll("\"", ""))
                         .map(String::trim).forEach(header -> {
@@ -86,7 +120,7 @@ public class CSVParser implements FileParser {
                 });
                 break;
             } else {
-                buffer.put(map.get(i));
+                buffer.put(current);
             }
         }
         buffer.clear();
@@ -96,7 +130,7 @@ public class CSVParser implements FileParser {
         columnsRead.incrementAndGet();
 
         if (columnsRead.get() > headers.size()) {
-            throw new ColumnsExceededHeadersException(columnsRead.get(), headers.size(), index + 1);
+            throw new ColumnsExceededHeadersException(columnsRead.get(), headers.size(), row + 1);
         } else {
             int read = buffer.position();
             byte[] line = new byte[read + 1];
@@ -112,6 +146,8 @@ public class CSVParser implements FileParser {
 
     private JsonObject readRow() {
         // reset current header.
+        row++;
+
         header = headers.fieldNames().iterator();
 
         AtomicInteger columnsRead = new AtomicInteger(0);
@@ -119,38 +155,44 @@ public class CSVParser implements FileParser {
         boolean quoted = false;
         boolean done = false;
 
-        while (!done) {
-            byte current = map.get();
+        for (long i = index; i < fileSize && !done; i++) {
+            if (i == fileSize - 1) {
+                // file fully read.
+                process(columnsRead, buffer, json);
+                done = true;
+            } else {
+                byte current = get();
 
-            switch (current) {
-                case TOKEN_NULL:
-                    // EOF call process.
-                    process(columnsRead, buffer, json);
-                    done = true;
-                    break;
-                case TOKEN_CR:
-                case TOKEN_LF:
-                    // final header is being read and EOL appears.
-                    if (columnsRead.get() == headers.size() - 1) {
+                switch (current) {
+                    case TOKEN_NULL:
+                        // EOF call process.
                         process(columnsRead, buffer, json);
                         done = true;
                         break;
-                    } else {
-                        // skip token if not all headers read.
-                        continue;
-                    }
-                case TOKEN_QUOTE:
-                    // toggle quoted to support commas within quotes.
-                    quoted = !quoted;
-                    break;
-                case TOKEN_SEPARATOR:
-                    if (!quoted) {
-                        process(columnsRead, buffer, json);
+                    case TOKEN_CR:
+                    case TOKEN_LF:
+                        // final header is being read and EOL appears.
+                        if (columnsRead.get() == headers.size() - 1) {
+                            process(columnsRead, buffer, json);
+                            done = true;
+                            break;
+                        } else {
+                            // skip token if not all headers read.
+                            continue;
+                        }
+                    case TOKEN_QUOTE:
+                        // toggle quoted to support commas within quotes.
+                        quoted = !quoted;
                         break;
-                    }
-                default:
-                    // store the current token in the buffer until the column ends.
-                    buffer.put(current);
+                    case TOKEN_SEPARATOR:
+                        if (!quoted) {
+                            process(columnsRead, buffer, json);
+                            break;
+                        }
+                    default:
+                        // store the current token in the buffer until the column ends.
+                        buffer.put(current);
+                }
             }
         }
 
@@ -169,10 +211,14 @@ public class CSVParser implements FileParser {
     private Object parseDatatype(byte[] data) {
         String line = new String(data).trim();
 
-        if (line.matches("[0-9]*")) {
-            return Integer.parseInt(line);
-        } else if (line.matches("true|false")) {
-            return Boolean.parseBoolean(line);
+        if (line.length() > 0) {
+            if (line.matches("[0-9]*")) {
+                return Long.parseLong(line);
+            } else if (line.matches("true|false")) {
+                return Boolean.parseBoolean(line);
+            } else {
+                return line;
+            }
         } else {
             return line;
         }
@@ -194,9 +240,8 @@ public class CSVParser implements FileParser {
 
     @Override
     public void subscribe(Subscriber<? super JsonObject> subscriber) {
-        map.position(0);
+        reset();
         readRow();
-        index = 0;
 
         subscriber.onSubscribe(new Subscription() {
             private boolean complete = false;
