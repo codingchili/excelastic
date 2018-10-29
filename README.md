@@ -23,7 +23,13 @@ The application requires ElasticSearch as its output.
 
 Tested with ElasticSearch 5.6.2 and 6.4.2.
 
-## Running
+## Running with docker
+```
+docker run -it -p 5252:5252 -e es_port=9200 -e es_host=localhost codingchili/excelastic
+```
+Note: there is currently no support for TLS or basic authentication when using the docker image.
+
+## Running the JAR
 
 Running the application, filename and index is required, to import from the terminal run:
 ```
