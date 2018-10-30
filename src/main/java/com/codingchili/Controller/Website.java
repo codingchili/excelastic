@@ -11,7 +11,7 @@ import io.vertx.ext.web.*;
 import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.templ.JadeTemplateEngine;
 
-import java.io.*;
+import java.io.FileNotFoundException;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -29,12 +29,14 @@ import static com.codingchili.Model.ExcelParser.INDEX;
  */
 public class Website extends AbstractVerticle {
     public static final String UPLOAD_ID = "uploadId";
+    public static final String ACTION = "action";
     private static final String DONE = "/done";
     private static final String ERROR = "/error";
     private static final String MESSAGE = "message";
     private static final String FILE = "file";
     private static final String IMPORTED = "imported";
     private static final String NO_FILE_WAS_UPLOADED = "No file was uploaded.";
+    private static final String VERIFY = "verify";
     private Logger logger = Logger.getLogger(getClass().getName());
     private Vertx vertx;
 
@@ -59,6 +61,7 @@ public class Website extends AbstractVerticle {
             context.put("esURL", Configuration.getElasticURL());
             context.put("connected", ElasticWriter.isConnected());
             context.put("tls", Configuration.isElasticTLS());
+            context.put("supportedFiles", String.join(", ", ParserFactory.getSupportedExtensions()));
             context.next();
         });
 
@@ -175,6 +178,7 @@ public class Website extends AbstractVerticle {
                 ImportEvent event = ImportEvent.fromParams(params);
                 parser.setFileData(uploadedFileName, event.getOffset(), fileName);
 
+                sendParsingEvent(event);
                 parser.initialize();
                 event.setParser(parser);
 
@@ -193,6 +197,12 @@ public class Website extends AbstractVerticle {
                 parser.free();
             }
         }, false, future);
+    }
+
+    private void sendParsingEvent(ImportEvent event) {
+        vertx.eventBus().publish(IMPORT_PROGRESS, new JsonObject()
+                .put(ACTION, VERIFY)
+                .put(UPLOAD_ID, event.getUploadId()));
     }
 
     private DeliveryOptions getDeliveryOptions() {
