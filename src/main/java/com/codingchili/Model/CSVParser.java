@@ -40,20 +40,21 @@ public class CSVParser implements FileParser {
 
     @Override
     public void setFileData(String localFileName, int _unused, String fileName) throws FileNotFoundException {
-        file = new RandomAccessFile(localFileName, "rw");
+        file = new RandomAccessFile(localFileName, "r"); // don't open for writing: writes to file.
         FileChannel channel = file.getChannel();
         try {
             maps = new MappedByteBuffer[(int) (file.length() / MAP_SIZE) + 1];
+            fileSize = file.length();
 
             for (int i = 0; i < maps.length; i++) {
                 long offset = i * MAP_SIZE;
+                long unmapped = Math.max(fileSize - (i * MAP_SIZE), 0);
 
                 maps[i] = channel.map(FileChannel.MapMode.READ_ONLY,
                         offset,
-                        MAP_SIZE);
+                        Math.min(MAP_SIZE, unmapped));
             }
 
-            fileSize = file.length();
             readRowCount();
             readHeaders();
 
@@ -145,9 +146,7 @@ public class CSVParser implements FileParser {
     }
 
     private JsonObject readRow() {
-        // reset current header.
-        row++;
-
+        // reset header.
         header = headers.fieldNames().iterator();
 
         AtomicInteger columnsRead = new AtomicInteger(0);
@@ -156,13 +155,14 @@ public class CSVParser implements FileParser {
         boolean done = false;
 
         for (long i = index; i < fileSize && !done; i++) {
+            byte current = get();
+
             if (i == fileSize - 1) {
                 // file fully read.
+                buffer.put(current);
                 process(columnsRead, buffer, json);
                 done = true;
             } else {
-                byte current = get();
-
                 switch (current) {
                     case TOKEN_NULL:
                         // EOF call process.
@@ -201,7 +201,7 @@ public class CSVParser implements FileParser {
                     String.format("Error at line %d, values (%d) does not match headers (%d).",
                             index, columnsRead.get(), headers.size()));
         } else {
-            index++;
+            row++;
         }
 
         // parse json object.
@@ -245,7 +245,6 @@ public class CSVParser implements FileParser {
 
         subscriber.onSubscribe(new Subscription() {
             private boolean complete = false;
-            private int index = 0;
 
             @Override
             public void request(long count) {
@@ -260,9 +259,9 @@ public class CSVParser implements FileParser {
                     }
                 }
 
-                index += count;
+                row += count;
 
-                if (index >= rows && !complete) {
+                if (row >= rows && !complete) {
                     subscriber.onComplete();
                 }
             }
