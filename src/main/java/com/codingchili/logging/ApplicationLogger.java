@@ -148,7 +148,7 @@ public class ApplicationLogger {
      * @param offset   this is the row number of the excel file where the column titles are located.
      */
     public void parsingFile(String fileName, int offset) {
-        logger.info(String.format("Parsing file '%s' using titles from excel row %d..", fileName, offset));
+        logger.info(String.format("Parsing file '%s' using titles from row %d..", fileName, offset));
     }
 
     /**
