@@ -12,6 +12,7 @@ import org.reactivestreams.Subscription;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.codingchili.Controller.Website.ACTION;
 import static com.codingchili.Controller.Website.UPLOAD_ID;
 
 /**
@@ -28,6 +29,7 @@ public class ElasticWriter extends AbstractVerticle {
     private static final String BULK = "/_bulk";
     private static final int POLL = 5000;
     private static final String PROGRESS = "progress";
+    public static final String IMPORT = "import";
     private static boolean connected = false;
     private static String version = "";
 
@@ -149,6 +151,7 @@ public class ElasticWriter extends AbstractVerticle {
         logger.onImportedBatch(response, event, event.getParser().getNumberOfElements(), received, percent);
 
         vertx.eventBus().publish(IMPORT_PROGRESS, new JsonObject()
+                .put(ACTION, IMPORT)
                 .put(PROGRESS, percent)
                 .put(UPLOAD_ID, event.getUploadId()));
     }
