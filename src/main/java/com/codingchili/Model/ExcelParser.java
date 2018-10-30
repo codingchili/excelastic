@@ -43,8 +43,6 @@ public class ExcelParser implements FileParser {
                 this.sheet = workbook.getSheetAt(0);
                 this.offset = offset;
                 this.fileName = fileName;
-                this.columns = getColumnCount(sheet.getRow(offset));
-                this.rows = getItemCount(sheet, offset);
             } catch (Exception e) {
                 if (e instanceof ParserException) {
                     throw (ParserException) e;
@@ -90,6 +88,9 @@ public class ExcelParser implements FileParser {
     @Override
     public void initialize() {
         logger.parsingFile(fileName, offset);
+
+        this.columns = getColumnCount(sheet.getRow(offset));
+        this.rows = getItemCount(sheet, offset);
 
         // parse all rows.
         readRows((json) -> {
@@ -138,7 +139,6 @@ public class ExcelParser implements FileParser {
     public void free() {
         try {
             workbook.close();
-            file.delete();
         } catch (IOException e) {
             logger.onError(e);
         }
