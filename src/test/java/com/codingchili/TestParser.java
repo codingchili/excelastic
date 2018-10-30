@@ -12,9 +12,12 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import java.io.*;
+import java.text.DecimalFormat;
 
 /**
  * @author Robin Duda
+ *
+ * Tests the parsers.
  */
 @RunWith(VertxUnitRunner.class)
 public class TestParser {
@@ -62,7 +65,6 @@ public class TestParser {
     }
 
     @Test
-    @Ignore("")
     public void testParseBig(TestContext context) throws IOException {
         CSVParser.setMaxMapSize(32); // has the same effect as using a large file.
         try {
@@ -76,12 +78,13 @@ public class TestParser {
     @Test
     @Ignore("Run when you need some testing data.")
     public void generateMonsterCSV() throws IOException {
-        File file = new File(getClass().getResource("").getPath() + BIG_CSV);
-        final int ITEMS = 24000;
+        File file = new File("D:/csv" + "/tiny.csv");
+        final int ITEMS = 120000;
         final int COLUMNS = 99;
 
+        try (OutputStream out = new BufferedOutputStream(new FileOutputStream(file), 1048576)) {
+            long begin = System.currentTimeMillis();
 
-        try (FileOutputStream out = new FileOutputStream(file)) {
             for (int r = 0; r < ITEMS; r++) {
                 for (int i = 0; i < COLUMNS; i++) {
                     if (r == 0) {
@@ -96,8 +99,14 @@ public class TestParser {
                     out.write("\n".getBytes());
                 }
 
-                if (r % 100 == 0) {
-                    System.out.println("process " + r + "/" + ITEMS + " ..");
+                if (r % 10000 == 0) {
+                    DecimalFormat df = new DecimalFormat();
+                    df.setMaximumFractionDigits(3);
+
+                    long itemsPerSec = (r  / ((System.currentTimeMillis() + 1) - begin));
+                    float pct = r / (float) ITEMS;
+                    System.out.println("process " + r + "/" + ITEMS + " .. " + itemsPerSec + "/s [" + df.format(pct*100)+ "%]" );
+                    begin = System.currentTimeMillis();
                 }
             }
         }
