@@ -19,7 +19,57 @@ span.glyphicon {
     z-index: 1;
 }
 
+#excel-options-show {
+    width: 100%;
+    text-align: center;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
 #progress-bar {
     animation: 0.2s linear 0s normal none infinite progress-bar-stripes;
     transition: width 0.25s !important;
+}
+
+.jumbotron {
+    background-color: #ffffff32;
+    color: #fff;
+}
+
+body {
+    background:
+            linear-gradient(red, transparent),
+            linear-gradient(to top left, lime, transparent),
+            linear-gradient(to top right, blue, transparent);
+    background-blend-mode: screen;
+    height: 100%;
+    margin: 0;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+html {
+    height: 100%;
+}
+
+a:link {
+    color: darkkhaki;
+}
+
+a:visited {
+    color: darkkhaki;
+}
+
+a:hover {
+    color: yellow;
+    text-decoration: none;
+}
+
+a:active {
+    color: cornsilk;
+    text-decoration: none;
 }

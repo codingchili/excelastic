@@ -6,13 +6,19 @@ websock.onmessage = (e) => {
     console.log(e.data);
 
     if (data.uploadId === uploadId) {
-        $('#panelheader').text('Importing ' + $('#file').val().split('\\').pop() + ' into ' + $('#index').val());
-        $('#progress-bar').css('width', data.progress + '%');
-        $
-    }
-}
 
-$('#file').change(function () {
+        if (data.action === "import") {
+            $('#panelheader').text('Importing ' + $('#file').val().split('\\').pop() + ' into ' + $('#index').val());
+            $('#progress-bar').css('width', data.progress + '%');
+        }
+
+        if (data.action === "verify") {
+            $('#panelheader').text('Verifying ' + $('#file').val().split('\\').pop());
+        }
+    }
+};
+
+$('#file').change(() => {
     uploadId = Math.random().toString(36).substring(7);
     $('#upload').hide();
     $('#uploadId').val(uploadId);
@@ -25,23 +31,28 @@ $('#file').change(function () {
     }, 500);
 });
 
-$(document).ready(function () {
+$(document).ready(() => {
     var date = new Date();
     $('#progress').hide();
     $('#index').val(date.toLocaleString('en-us', {month: 'long'}).toLowerCase() + '-' + date.getFullYear());
-    $(function () {
+    $(() => {
         $("[data-toggle='tooltip']").tooltip();
     });
 });
 
-$('#close-window').click(function () {
+$('#close-window').click(() => {
     window.close();
 });
 
-$('#add-window').click(function () {
+$('#add-window').click(() => {
     window.open('http://' + location.host, '_blank');
 });
 
-$('#start-page').click(function () {
+$('#start-page').click(() => {
     window.location.href = '/';
+});
+
+$('#excel-options-show').click(() => {
+    $('#excel-options').show();
+    $('#excel-options-show').hide();
 });

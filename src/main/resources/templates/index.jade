@@ -15,7 +15,7 @@ html(lang='en')
                     p.text-danger Not connected, #[a(href=".") refresh?]
         div.col-xs-10.col-xs-offset-1.col-lg-4.col-lg-offset-4
             .panel.panel-info
-                .panel-heading#panelheader Upload an .xlsx or .xls file!
+                .panel-heading#panelheader Supported file types: #{context.supportedFiles}!
                 .panel-body
                     div#progress
                         .progress
@@ -32,8 +32,10 @@ html(lang='en')
                                 label.col-lg-3.control-label(for='mapping') Mapping
                                 .col-lg-9
                                     input#index.form-control(type='text', name='mapping', placeholder='default')
-                            .form-group
-                                label.col-lg-3.control-label(for='offset') Title-row (excel)
+                            a.text-center.clickable#excel-options-show
+                                show excel options
+                            .form-group(hidden)#excel-options
+                                label.col-lg-3.control-label(for='offset') Title-row
                                 .col-lg-9
                                     input#offset.form-control(type='text', name='offset', value='1')
                             .form-group
