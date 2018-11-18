@@ -5,6 +5,7 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.vertx.core.*;
 import io.vertx.core.http.*;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;

@@ -110,7 +110,7 @@ public class CSVParser implements FileParser {
         reset();
 
         for (long i = 0; i < fileSize; i++) {
-            if (get() == '\n') {
+            if (get() == '\r') {
                 rows++;
                 row = rows;
             }
@@ -122,7 +122,7 @@ public class CSVParser implements FileParser {
 
         for (long i = 0; i < fileSize; i++) {
             byte current = get();
-            if (current == '\n') {
+            if (current == '\r') {
                 Arrays.stream(new String(buffer.array()).split(","))
                         .map(header -> header.replaceAll("\"", ""))
                         .map(String::trim).forEach(header -> {
@@ -140,7 +140,7 @@ public class CSVParser implements FileParser {
         columnsRead.incrementAndGet();
 
         if (columnsRead.get() > headers.size()) {
-            throw new ColumnsExceededHeadersException(columnsRead.get(), headers.size(), row + 1);
+            throw new ColumnsHeadersMismatchException(columnsRead.get(), headers.size(), row + 1);
         } else {
             if (!dryRun) {
                 int read = buffer.position();
@@ -183,16 +183,17 @@ public class CSVParser implements FileParser {
                         process(columnsRead, json);
                         done = true;
                         break;
-                    case TOKEN_CR:
                     case TOKEN_LF:
+                        // skip LF characters.
+                        break;
+                    case TOKEN_CR:
                         // final header is being read and EOL appears.
                         if (columnsRead.get() == headers.size() - 1) {
                             process(columnsRead, json);
                             done = true;
                             break;
                         } else {
-                            // skip token if not all headers read.
-                            continue;
+                            throw new ColumnsHeadersMismatchException(columnsRead.get(), headers.size() - 1, row + 1);
                         }
                     case TOKEN_QUOTE:
                         // toggle quoted to support commas within quotes.
@@ -212,8 +213,8 @@ public class CSVParser implements FileParser {
 
         if (!(columnsRead.get() == headers.size())) {
             throw new ParserException(
-                    String.format("Error at line %d, values (%d) does not match headers (%d).",
-                            index, columnsRead.get(), headers.size()));
+                    String.format("Error at row %d, values (%d) does not match headers (%d).",
+                            row + 1, columnsRead.get(), headers.size()));
         } else {
             row++;
         }
@@ -263,25 +264,17 @@ public class CSVParser implements FileParser {
         readRow();
 
         subscriber.onSubscribe(new Subscription() {
-            private boolean complete = false;
 
             @Override
             public void request(long count) {
                 for (int i = 0; i < count && i < rows; i++) {
                     JsonObject result = readRow();
+                    subscriber.onNext(result);
 
-                    if (result != null) {
-                        subscriber.onNext(result);
-                    } else {
-                        complete = true;
+                    if (row >= rows) {
                         subscriber.onComplete();
+                        break;
                     }
-                }
-
-                row += count;
-
-                if (row >= rows && !complete) {
-                    subscriber.onComplete();
                 }
             }
 
