@@ -67,7 +67,7 @@ public class ApplicationLauncher {
             try {
                 Desktop.getDesktop().browse(new URI(Configuration.getWebsiteURL()));
             } catch (Exception e) {
-                logger.onError(e);
+                logger.displayNotAvailable(e);
             }
             consumer.pause();
         });

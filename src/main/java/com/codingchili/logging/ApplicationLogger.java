@@ -215,4 +215,12 @@ public class ApplicationLogger {
     public void websiteStarted(int webPort) {
         logger.info("Started website on port " + webPort);
     }
+
+    /**
+     * On failure to access the desktop/display.
+     * @param e exception thrown when attempting to open the browser.
+     */
+    public void displayNotAvailable(Exception e) {
+        logger.warning("Failed to open website: " + e.getMessage());
+    }
 }
