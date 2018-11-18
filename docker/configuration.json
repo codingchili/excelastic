@@ -1,8 +1,9 @@
 {
-  "web_port": 5252,
+  "web_port": 8080,
   "elastic_port": $es_port,
   "elastic_host": "$es_host",
-  "elastic_tls": false,
-  "authentication": false,
-  "basic": "username:password"
+  "elastic_tls": $es_tls,
+  "default_index": "$default_index",
+  "authentication": $es_authentication,
+  "basic": "$username:$password"
 }
