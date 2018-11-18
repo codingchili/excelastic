@@ -65,6 +65,7 @@ An example of the configuration:
   "elastic_host": "localhost",      // address to elasticsearch
   "elastic_tls": false,             // set to true to use tls when indexing
   "authentication": false,          // sends an "Authentication" header if true.
+  "default_index": "excelastic"     // the default index to use from the web interface.
   "basic": "username:password"      // if authentication is true this is used as basic authentication.
 }
 ```
