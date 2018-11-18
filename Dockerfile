@@ -23,6 +23,6 @@ ENV es_authentication false
 ENV username root
 ENV password root
 
-EXPOSE 5252:5252/tcp
+EXPOSE 8080:8080/tcp
 
 ENTRYPOINT ["/bin/sh", "-c", "/opt/excelastic/bootstrap.sh"]
