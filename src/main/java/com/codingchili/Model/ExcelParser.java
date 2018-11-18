@@ -122,19 +122,6 @@ public class ExcelParser implements FileParser {
         });
     }
 
-    /**
-     * Parses the given portion of the excel file, this saves memory as the whole file
-     * does not need to be stored in memory as JSON at once.
-     *
-     * @param begin    the offset from the starting row.
-     * @param count    the number of lines to parse.
-     * @param consumer processor of json items.
-     */
-    public void parseRowRange(int begin, int count, Consumer<JsonObject> consumer) {
-        readRows(consumer, begin, begin + count, false);
-    }
-
-
     @Override
     public void free() {
         try {
