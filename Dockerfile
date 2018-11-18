@@ -18,7 +18,7 @@ WORKDIR /opt/excelastic
 ENV es_host localhost
 ENV es_port 9200
 ENV es_tls false
-ENV default_index null
+ENV default_index excelastic
 ENV es_authentication false
 ENV username root
 ENV password root
