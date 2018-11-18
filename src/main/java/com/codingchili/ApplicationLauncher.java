@@ -66,7 +66,7 @@ public class ApplicationLauncher {
             logger.openingBrowser(message.body().toString());
             try {
                 Desktop.getDesktop().browse(new URI(Configuration.getWebsiteURL()));
-            } catch (IOException | URISyntaxException e) {
+            } catch (Exception e) {
                 logger.onError(e);
             }
             consumer.pause();
