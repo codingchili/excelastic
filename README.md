@@ -5,7 +5,7 @@ Parses XLSX/XLS/CSV files into ElasticSearch using column titles from a specifie
 ![sample UI image](https://raw.githubusercontent.com/codingchili/parser-excel-elasticsearch/master/excelastic.webp)
 
 ## Features
-- import excel (.xlsx/.xls) files into elasticsearch.
+- import excel (.xlsx/.xls) files into ElasticSearch.
 - easy to use web interface, with support for commandline imports too.
 - csv files can be converted to .xlsx using office and then imported.
 - clear the index before importing, or append to existing index.
@@ -17,17 +17,19 @@ Parses XLSX/XLS/CSV files into ElasticSearch using column titles from a specifie
 ## Prerequisites
 The application requires ElasticSearch as its output.
 
-1. ElasticSearch (version 5+/6+) should not require any additional configuration or installation, just download and run from [Elastic](https://www.elastic.co/products). 
+1. ElasticSearch (version 5+/6+/7+) should not require any additional configuration or installation, just download and run from [Elastic](https://www.elastic.co/products). 
 
 2. Grab the latest .jar file from [releases](https://github.com/codingchili/parser-excel-elasticsearch/releases).
 
-Tested with ElasticSearch 5.6.2 and 6.4.2.
+Tested with ElasticSearch 5.6.2, 6.4.2 and 7.0.0-alpha1
 
 ## Running with docker
 ```
-docker run -it -p 5252:5252 -e es_port=9200 -e es_host=localhost codingchili/excelastic
+docker run -it -p 8080:8080 -e es_port=9200 -e es_host=<host IP> codingchili/excelastic
 ```
-Note: there is currently no support for TLS or basic authentication when using the docker image.
+Note: ElasticSearch needs to bind to the es_host address, this can be configured as
+`network.host: 0.0.0.0` in elasticsearch.yaml. Please remember that its possible to
+connect to it from another machine when binding to all interfaces.
 
 ## Running the JAR
 
