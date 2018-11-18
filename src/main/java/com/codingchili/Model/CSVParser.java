@@ -271,7 +271,7 @@ public class CSVParser implements FileParser {
                     JsonObject result = readRow();
                     subscriber.onNext(result);
 
-                    if (row >= rows) {
+                    if (row > rows) {
                         subscriber.onComplete();
                         break;
                     }

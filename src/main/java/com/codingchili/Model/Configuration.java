@@ -5,6 +5,8 @@ import io.vertx.core.json.JsonObject;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -19,6 +21,7 @@ public class Configuration {
     private static final String CONFIGURATION_JSON = "configuration.json";
     private static int ELASTIC_PORT;
     private static String ELASTIC_HOST;
+    private static String DEFAULT_INDEX;
     private static int WEB_PORT;
     private static boolean SECURITY;
     private static String BASIC_AUTH;
@@ -32,6 +35,7 @@ public class Configuration {
         SECURITY = configuration.getBoolean("authentication", false);
         BASIC_AUTH = configuration.getString("basic", "username:password");
         ELASTIC_TLS = configuration.getBoolean("elastic_tls", false);
+        DEFAULT_INDEX = configuration.getString("default_index", generateDefaultIndex());
     }
 
     private static JsonObject getConfiguration() {
@@ -43,6 +47,10 @@ public class Configuration {
                     String.format("Configuration file %s is not present, using defaults.", CONFIGURATION_JSON));
             return new JsonObject();
         }
+    }
+
+    private static String generateDefaultIndex() {
+        return DateTimeFormatter.ofPattern("MMMM-yyyy").format(ZonedDateTime.now()).toLowerCase();
     }
 
     /**
@@ -105,5 +113,12 @@ public class Configuration {
             protocol = "https";
         }
         return protocol + "://" + ELASTIC_HOST + ":" + ELASTIC_PORT;
+    }
+
+    /**
+     * @return the default index to use for importing.
+     */
+    public static Object getDefaultIndex() {
+        return DEFAULT_INDEX;
     }
 }

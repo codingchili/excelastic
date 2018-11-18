@@ -3,6 +3,7 @@
   "elastic_port": 9200,
   "elastic_host": "localhost",
   "elastic_tls": false,
+  "default_index": "excelastic",
   "authentication": false,
   "basic": "username:password"
 }

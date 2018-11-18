@@ -32,9 +32,8 @@ $('#file').change(() => {
 });
 
 $(document).ready(() => {
-    var date = new Date();
     $('#progress').hide();
-    $('#index').val(date.toLocaleString('en-us', {month: 'long'}).toLowerCase() + '-' + date.getFullYear());
+
     $(() => {
         $("[data-toggle='tooltip']").tooltip();
     });

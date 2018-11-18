@@ -137,7 +137,7 @@ public class ApplicationLogger {
      */
     public void onCommandLineMissingArguments(String[] args) {
         logger.severe("Missing command line arguments, both <fileName> and <indexName> is required.");
-        logger.severe("Found arguments: " + Arrays.stream(args).collect(Collectors.joining(", ")));
+        logger.severe("Found arguments: " + String.join(", ", args));
         logger.severe("Provided " + args.length + " arguments, at least two are required.");
     }
 
