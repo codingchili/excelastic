@@ -1,4 +1,4 @@
-let websock = new WebSocket("ws://" + location.host + "/");
+let websock = new WebSocket("ws://" + location.host + window.location.pathname);
 let uploadId = '';
 
 websock.onmessage = (e) => {
@@ -48,7 +48,7 @@ $('#add-window').click(() => {
 });
 
 $('#start-page').click(() => {
-    window.location.href = '/';
+    window.location.href = '../';
 });
 
 $('#excel-options-show').click(() => {
