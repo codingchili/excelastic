@@ -122,7 +122,7 @@ public class CSVParser implements FileParser {
 
         for (long i = 0; i < fileSize; i++) {
             byte current = get();
-            if (current == '\r') {
+            if (current == TOKEN_LF || current == TOKEN_CR) {
                 Arrays.stream(new String(buffer.array()).split(","))
                         .map(header -> header.replaceAll("\"", ""))
                         .map(String::trim).forEach(header -> {
