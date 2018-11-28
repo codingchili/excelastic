@@ -4,6 +4,7 @@
   "elastic_host": "localhost",
   "elastic_tls": false,
   "default_index": "excelastic",
+  "index_lock": false,
   "authentication": false,
   "basic": "username:password"
 }

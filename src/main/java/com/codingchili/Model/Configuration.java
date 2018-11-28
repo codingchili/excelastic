@@ -26,6 +26,7 @@ public class Configuration {
     private static boolean SECURITY;
     private static String BASIC_AUTH;
     private static boolean ELASTIC_TLS;
+    private static boolean INDEX_LOCK;
 
     static {
         JsonObject configuration = getConfiguration();
@@ -36,6 +37,7 @@ public class Configuration {
         BASIC_AUTH = configuration.getString("basic", "username:password");
         ELASTIC_TLS = configuration.getBoolean("elastic_tls", false);
         DEFAULT_INDEX = configuration.getString("default_index", generateDefaultIndex());
+        INDEX_LOCK = configuration.getBoolean("index_lock", false);
     }
 
     private static JsonObject getConfiguration() {
@@ -118,7 +120,14 @@ public class Configuration {
     /**
      * @return the default index to use for importing.
      */
-    public static Object getDefaultIndex() {
+    public static String getDefaultIndex() {
         return DEFAULT_INDEX;
+    }
+
+    /**
+     * @return true if the user should not be allowed to specify the import index.
+     */
+    public static boolean isIndexLocked() {
+        return INDEX_LOCK;
     }
 }

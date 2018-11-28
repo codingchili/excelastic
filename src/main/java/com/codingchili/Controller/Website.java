@@ -6,6 +6,7 @@ import io.vertx.core.*;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.*;
 import io.vertx.ext.web.handler.*;
@@ -62,6 +63,7 @@ public class Website extends AbstractVerticle {
             context.put("connected", ElasticWriter.isConnected());
             context.put("tls", Configuration.isElasticTLS());
             context.put("index", Configuration.getDefaultIndex());
+            context.put("indexLocked", Configuration.isIndexLocked());
             context.put("supportedFiles", String.join(", ", ParserFactory.getSupportedExtensions()));
             context.next();
         });
@@ -147,7 +149,9 @@ public class Website extends AbstractVerticle {
         // when the file has been read from disk, parsed and imported.
         return Future.<Integer>future().setHandler(result -> {
             if (result.succeeded()) {
-                String index = context.request().params().get(INDEX);
+                String index = getIndexFromRequest(context.request());
+
+
                 logger.info(String.format("Imported file '%s' successfully into '%s'.", fileName, index));
 
                 context.put(INDEX, index);
@@ -163,14 +167,20 @@ public class Website extends AbstractVerticle {
         });
     }
 
+    private String getIndexFromRequest(HttpServerRequest request) {
+        // only read the index from the request if the target index is not locked.
+        return (Configuration.isIndexLocked()) ?
+                Configuration.getDefaultIndex() : request.params().get(INDEX);
+    }
+
     /**
      * Parses a file upload request, converting the excel payload into json and waits
      * for elasticsearch to complete indexing.
      *
      * @param uploadedFileName the actual file on disk that contains the uploaded file.
-     * @param params   upload parameters
-     * @param fileName the name of the uploaded file
-     * @param future   callback on completed parse + indexing.
+     * @param params           upload parameters
+     * @param fileName         the name of the uploaded file
+     * @param future           callback on completed parse + indexing.
      */
     private void parse(String uploadedFileName, MultiMap params, String fileName, Future<Integer> future) {
         vertx.executeBlocking(blocking -> {
