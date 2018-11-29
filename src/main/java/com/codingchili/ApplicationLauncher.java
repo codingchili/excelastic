@@ -30,8 +30,11 @@ public class ApplicationLauncher {
 
     private ApplicationLauncher(String[] args) {
         VertxOptions options = new VertxOptions();
-        options.setMaxEventLoopExecuteTime(options.getMaxEventLoopExecuteTime() * 10)
+
+        options.setMaxWorkerExecuteTime(options.getMaxWorkerExecuteTime() * 20) // 20 minutes.
+                .setMaxEventLoopExecuteTime(options.getMaxEventLoopExecuteTime() * 10) // 10 seconds.
                 .setBlockedThreadCheckInterval(8000);
+
         vertx = Vertx.vertx();
 
         ImportEventCodec.registerOn(vertx);

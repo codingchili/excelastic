@@ -110,7 +110,7 @@ public class CSVParser implements FileParser {
         reset();
 
         for (long i = 0; i < fileSize; i++) {
-            if (get() == '\r') {
+            if (get() == TOKEN_LF) {
                 rows++;
                 row = rows;
             }
@@ -118,13 +118,15 @@ public class CSVParser implements FileParser {
     }
 
     private void readHeaders() {
+        AtomicInteger fieldId = new AtomicInteger(0);
         reset();
 
         for (long i = 0; i < fileSize; i++) {
             byte current = get();
-            if (current == TOKEN_LF || current == TOKEN_CR) {
+            if (current == TOKEN_LF) {
                 Arrays.stream(new String(buffer.array()).split(","))
                         .map(header -> header.replaceAll("\"", ""))
+                        .map(header -> (header.isEmpty()) ? "header_" + fieldId.incrementAndGet() : header)
                         .map(String::trim).forEach(header -> {
                     headers.put(header, "<empty>");
                 });
@@ -183,17 +185,20 @@ public class CSVParser implements FileParser {
                         process(columnsRead, json);
                         done = true;
                         break;
-                    case TOKEN_LF:
-                        // skip LF characters.
-                        break;
                     case TOKEN_CR:
-                        // final header is being read and EOL appears.
-                        if (columnsRead.get() == headers.size() - 1) {
-                            process(columnsRead, json);
-                            done = true;
-                            break;
-                        } else {
-                            throw new ColumnsHeadersMismatchException(columnsRead.get(), headers.size() - 1, row + 1);
+                        // skip CR characters.
+                        break;
+                    case TOKEN_LF:
+                        // ignore empty lines.
+                        if (buffer.position() > 0) {
+                            // final header is being read and EOL appears.
+                            if (columnsRead.get() == headers.size() - 1) {
+                                process(columnsRead, json);
+                                done = true;
+                                break;
+                            } else {
+                                throw new ColumnsHeadersMismatchException(columnsRead.get(), headers.size() - 1, row + 1);
+                            }
                         }
                     case TOKEN_QUOTE:
                         // toggle quoted to support commas within quotes.
@@ -223,16 +228,19 @@ public class CSVParser implements FileParser {
         return json;
     }
 
+
+    private static final Predicate<String> floatPattern = Pattern.compile("^[0-9]+\\.[0-9]+$").asPredicate();
     private static final Predicate<String> numberPattern = Pattern.compile("^[0-9]+$").asPredicate();
     private static final Predicate<String> boolPattern = Pattern.compile("^(true|false)$").asPredicate();
 
     private Object parseDatatype(byte[] data) {
         String line = new String(data).trim();
 
-        // skip regex parsing on dry-run.
         if (line.length() > 0) {
             if (numberPattern.test(line)) {
                 return Long.parseLong(line);
+            } else if (floatPattern.test(line)) {
+                return Double.parseDouble(line);
             } else if (boolPattern.test(line)) {
                 return Boolean.parseBoolean(line);
             } else {
