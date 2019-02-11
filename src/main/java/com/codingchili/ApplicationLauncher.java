@@ -21,7 +21,7 @@ import static com.codingchili.Model.ElasticWriter.*;
  */
 public class ApplicationLauncher {
     private final ApplicationLogger logger = new ApplicationLogger(getClass());
-    public static String VERSION = "1.3.3";
+    public static String VERSION = "1.3.4";
     private Vertx vertx;
 
     public static void main(String[] args) {
