@@ -41,7 +41,7 @@ span.glyphicon {
 }
 
 body {
-    background-image: linear-gradient(to right, #fff, #9954bb);
+    background-image: linear-gradient(to right, #ff7b7b, #7a0098);
     height: 100%;
     margin: 0;
 }
@@ -51,19 +51,19 @@ html {
 }
 
 a:link {
-    color: #15569f;
+    color: #00004a;
 }
 
 a:visited {
-    color: #15569f;
+    color: #00004a;
 }
 
 a:hover {
-    color: #9954bb;
+    color: #00bbab;
     text-decoration: none;
 }
 
 a:active {
-    color: #9954bb;
+    color: #004236;
     text-decoration: none;
 }

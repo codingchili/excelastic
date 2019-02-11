@@ -12,9 +12,9 @@ html(lang='en')
                         span.badge.badge-pill.badge-primary(style="margin-top:-22px;")
                             | TLS ENABLED
                 else
-                    p.text-danger Not connected, #[a(href=".") refresh?]
+                    p Not connected, #[a(href=".") refresh?]
         div.col-xs-10.col-xs-offset-1.col-lg-4.col-lg-offset-4
-            .panel.panel-info
+            .panel.panel-primary
                 .panel-heading#panelheader Supported file types: #{context.supportedFiles}!
                 .panel-body
                     div#progress
@@ -42,13 +42,13 @@ html(lang='en')
                                 label.col-lg-2.control-label(for='clear')
                                 .col-xs-12
                                     .btn-group(data-toggle='buttons', style='display: flex; justify-content: space-evenly;')
-                                        label.btn.btn-info.active
+                                        label.btn.btn-primary.active
                                             input(type='radio', value='add', name='options', checked='')
                                             | Add values
-                                        label.btn.btn-info
+                                        label.btn.btn-primary
                                             input(type='radio', value='clear', name='options')
                                             | Clear existing
-                            label.btn.btn-block.btn-info.btn-file
+                            label.btn.btn-block.btn-primary.btn-file
                                 | UPLOAD
                                 input#file(type='file', name='file', style='display: none;')
         include scripts

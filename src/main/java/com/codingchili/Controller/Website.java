@@ -10,7 +10,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.*;
 import io.vertx.ext.web.handler.*;
-import io.vertx.ext.web.templ.JadeTemplateEngine;
+import io.vertx.ext.web.templ.jade.JadeTemplateEngine;
 
 import java.io.FileNotFoundException;
 import java.util.Iterator;
@@ -68,7 +68,7 @@ public class Website extends AbstractVerticle {
             context.next();
         });
 
-        router.route("/*").handler(TemplateHandler.create(JadeTemplateEngine.create()));
+        router.route("/*").handler(TemplateHandler.create(JadeTemplateEngine.create(vertx)));
         startWebsite(start, router);
     }
 
