@@ -6,8 +6,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
+import java.nio.*;
 import java.nio.channels.FileChannel;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -79,7 +78,7 @@ public class CSVParser implements FileParser {
     private void reset() {
         index = 0;
         row = 0;
-        for (MappedByteBuffer map : maps) {
+        for (Buffer map : maps) {
             map.position(0);
         }
     }
@@ -135,7 +134,7 @@ public class CSVParser implements FileParser {
                 buffer.put(current);
             }
         }
-        buffer.clear();
+        ((Buffer) buffer).clear();
     }
 
     private void process(AtomicInteger columnsRead, JsonObject json) {
@@ -148,7 +147,7 @@ public class CSVParser implements FileParser {
                 int read = buffer.position();
                 byte[] line = new byte[read + 1];
 
-                buffer.position(0);
+                ((Buffer) buffer).position(0);
                 buffer.get(line, 0, read);
                 line[line.length - 1] = '\0';
 
@@ -157,7 +156,7 @@ public class CSVParser implements FileParser {
                 // skip parsing the content - just verify the format.
                 header.next();
             }
-            buffer.clear();
+            ((Buffer) buffer).clear();
         }
     }
 
