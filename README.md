@@ -78,6 +78,8 @@ If no configuration file is present a new configuration file will be created usi
 
 If you want to contribute to this project, open an issue or pull request. :heart_eyes_cat: :metal:
 
+[![donate](https://img.shields.io/badge/donate-%CE%9ETH%20/%20%C9%83TC-ff00cc.svg?style=flat&logo=ethereum)](https://commerce.coinbase.com/checkout/673e693e-be6d-4583-9791-611da87861e3)
+
 ---
 
 Thanks to JetBrains for providing free open source licenses!
