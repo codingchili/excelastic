@@ -24,7 +24,7 @@ The application requires ElasticSearch as its output.
 Tested with ElasticSearch 5.6.2, 6.4.2 and 7.0.0-alpha1
 
 ## Running with docker
-```
+```console
 docker run -it -p 8080:8080 -e es_port=9200 -e es_host=<host IP> codingchili/excelastic
 ```
 Note: ElasticSearch needs to bind to the es_host address, this can be configured as
@@ -34,13 +34,13 @@ connect to it from another machine when binding to all interfaces.
 ## Running the JAR
 
 Running the application, filename and index is required, to import from the terminal run:
-```
+```console
 java -Xmx2g -jar excelastic.jar <fileName> <indexName> --mapping mappingName --clear
 ```
 If running with --clear, then the existing index will be cleared before the import starts.
 
 To run with the web interface, run the following in your terminal:
-```
+```console
 java -Xmx2g -jar excelastic.jar
 ```
 When the application successfully connects to the ElasticSearch server, the browser will automatically open a new tab.
@@ -48,7 +48,7 @@ When the application successfully connects to the ElasticSearch server, the brow
 If any connection errors occur check that the ElasticSearch listen port matches with the elastic_port in the configuration file. Make sure that ElasticSearch is running by directing your browser at [localhost:9200](http://localhost:9200/).
 
 Compiling a new fatjar and run tests,
-```
+```console
 mvn clean package
 ```
 
@@ -58,7 +58,7 @@ mvn clean package
 
 The configuration file is placed in the same directory as the jar.
 An example of the configuration:
-```
+```javascript
 {
   "web_port": 0,                    // the port the web interface listens on
   "elastic_port": 9200,             // the port elasticsearch listens on
@@ -73,6 +73,31 @@ If no configuration file is present the values in the above example will be used
 Note that the comments cannot be included in the configuration file.
 
 If no configuration file is present a new configuration file will be created using the default values listed here.
+
+### TLS
+When using a self-signed certificate on the ElasticSearch server the server certificate needs to be trusted. By default the client uses the JVM truststore, which will work if the certificate was signed by a reputable certificate authority. This isn't the case for most internal resources/servers. In this case we need to explicitly trust the organizations root certificate (issuer) or the servers certificate directly.
+
+Importing a .pem certificate into a new or existing keystore,
+
+```console
+keytool -importcert -keystore mytruststore.jks -alias excelastic -file servercert.pem
+```
+
+Specify a path to the truststore when starting excelastic,
+```console
+java -Djavax.net.ssl.trustStore="path/to/mytruststore.jks" -jar excelastic.jar
+```
+
+##### Don't have the certificate?
+No worries, it can be retrieved using a web browser, browse to <host>:9200 and inspect the certificate from the address bar.
+  
+Retrieving certificates with openssl client
+```console
+openssl s_client -showcerts -connect <host> 9200
+# convert to format usable by java keytool.. (openssl x509 -outform PEM)
+```
+
+Where <host> is localhost, or wherever the ElasticSearch server is running.
 
 ## Contributing
 
