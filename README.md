@@ -80,6 +80,11 @@ If you want to contribute to this project, open an issue or pull request. :heart
 
 ---
 
-Thanks to JetBrains for providing free open source licenses!
+Thanks to [JetBrains](https://www.jetbrains.com/) for providing free open source licenses! Programmer productivity is boosted!
 
-[![](https://algeria20.com/wp-content/uploads/2017/11/jet.png)](http://www.jetbrains.com)
+[![https://algeria20.com/wp-content/uploads/2017/11/jet.png](https://algeria20.com/wp-content/uploads/2017/11/jet.png)](http://www.jetbrains.com)
+
+
+Thanks to [jProfiler](https://www.ej-technologies.com/products/jprofiler/overview.html) for providing free open source licenses! Application performance is boosted!
+
+[![https://www.ej-technologies.com/products/jprofiler/overview.html](https://www.ej-technologies.com/images/product_banners/jprofiler_large.png)](https://www.ej-technologies.com/products/jprofiler/overview.html)
