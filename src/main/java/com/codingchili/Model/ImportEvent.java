@@ -61,7 +61,7 @@ public class ImportEvent {
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals(argName)) {
                 if (i + 1 < args.length) {
-                    return Optional.of(args[i + i]);
+                    return Optional.of(args[i + 1]);
                 }
             }
         }
