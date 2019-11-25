@@ -11,19 +11,22 @@ import static com.codingchili.Model.ExcelParser.INDEX;
 /**
  * @author Robin Duda
  * <p>
- * Contains infromation about an import request.
+ * Contains information about an import request.
  */
 public class ImportEvent {
     private static final String ARG_CLEAR = "--clear";
     private static final String ARG_OFFSET = "--offset";
     private static final String ARG_MAPPING = "--mapping";
+    private static final String ARG_PIPELINE = "--pipeline";
     private static final String OFFSET = "offset";
     private static final String MAPPING = "mapping";
+    private static final String PIPELINE = "pipeline";
     private static final String OPTIONS = "options";
     private static final String CLEAR = "clear";
     private FileParser parser;
     private Boolean clearExisting;
     private String mapping;
+    private Optional<String> pipeline;
     private String index;
     private String uploadId;
     private int offset;
@@ -38,6 +41,7 @@ public class ImportEvent {
         return new ImportEvent()
                 .setIndex(params.get(INDEX))
                 .setMapping(getMappingByParams(params))
+                .setPipeline(params.get(PIPELINE))
                 .setClearExisting(params.get(OPTIONS).equals(CLEAR))
                 .setUploadId(params.get(UPLOAD_ID))
                 .setOffset(Integer.parseInt(params.get(OFFSET)));
@@ -53,8 +57,10 @@ public class ImportEvent {
         return new ImportEvent()
                 .setIndex(args[1])
                 .setOffset(getArgParamValue(args, ARG_OFFSET).map(Integer::parseInt).orElse(1))
-                .setClearExisting(Arrays.asList(args).contains(ARG_CLEAR))
-                .setMapping(getArgParamValue(args, ARG_MAPPING).orElse("default"));
+                .setMapping(getArgParamValue(args, ARG_MAPPING).orElse("default"))
+                .setPipeline(getArgParamValue(args, ARG_PIPELINE).orElse(""))
+                .setClearExisting(Arrays.asList(args).contains(ARG_CLEAR));
+                
     }
 
     private static Optional<String> getArgParamValue(String[] args, String argName) {
@@ -132,4 +138,14 @@ public class ImportEvent {
         this.index = index;
         return this;
     }
+
+    public Optional<String> getPipeline() {
+        return pipeline;
+    }
+
+    public ImportEvent setPipeline(String pipeline) {
+        this.pipeline = Optional.ofNullable(pipeline);
+        return this;
+    }
+    
 }

@@ -13,6 +13,7 @@ Parses XLSX/XLS/CSV files into ElasticSearch using column titles from a specifie
 - support for importing to TLS enabled elasticsearch servers.
 - supports concurrent parsing of excel files and importing for better performance.
 - parses the whole file before starting the import - to make sure your index is not left in an undesired state.
+- specify elasticsearch ingest pipeline for a given spreadsheet.
 
 ## Prerequisites
 The application requires ElasticSearch as its output.
@@ -21,7 +22,7 @@ The application requires ElasticSearch as its output.
 
 2. Grab the latest .jar file from [releases](https://github.com/codingchili/parser-excel-elasticsearch/releases).
 
-Tested with ElasticSearch 5.6.2, 6.4.2 and 7.0.0-alpha1
+Tested with ElasticSearch 5.6.2, 6.4.2, 7.0.0-alpha1 and 7.4.0.
 
 ## Running with docker
 ```console
@@ -35,7 +36,7 @@ connect to it from another machine when binding to all interfaces.
 
 Running the application, filename and index is required, to import from the terminal run:
 ```console
-java -Xmx2g -jar excelastic.jar <fileName> <indexName> --mapping mappingName --clear
+java -Xmx2g -jar excelastic.jar <fileName> <indexName> --mapping mappingName --pipeline pipelineName --clear
 ```
 If running with --clear, then the existing index will be cleared before the import starts.
 

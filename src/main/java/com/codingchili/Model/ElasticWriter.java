@@ -158,10 +158,18 @@ public class ElasticWriter extends AbstractVerticle {
     }
 
     private String createImportHeader(ImportEvent event) {
+        JsonObject indexBody = new JsonObject();
+        indexBody.put("_index", event.getIndex())
+                 .put("_type", event.getMapping());
+
+        event.getPipeline()
+        	.filter(value -> !value.isEmpty())
+        	.ifPresent((pipeline) -> indexBody.put("pipeline", pipeline));
+        
         return new JsonObject()
-                .put("index", new JsonObject()
-                        .put("_index", event.getIndex())
-                        .put("_type", event.getMapping())).encode() + "\n";
+                .put("index", indexBody)
+                .encode() + "\n";
+
     }
 
     /**
