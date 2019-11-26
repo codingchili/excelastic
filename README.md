@@ -2,7 +2,7 @@
 
 Parses XLSX/XLS/CSV files into ElasticSearch using column titles from a specified row combined with data in columns on each row. May be used with Kibana or other visualization applications, example result using a transaction log in excel format  [image](https://raw.githubusercontent.com/codingchili/parser-banktrans-es/master/sample-redacted.png). The application comes with a web-interface to simplify uploading.
 
-![sample UI image](https://raw.githubusercontent.com/codingchili/parser-excel-elasticsearch/master/excelastic.png)
+![sample UI image](excelastic.png)
 
 ## Features
 - import excel (.xlsx/.xls) files into ElasticSearch.
@@ -114,4 +114,4 @@ Thanks to [jProfiler](https://www.ej-technologies.com/products/jprofiler/overvie
 
 Thanks to [JetBrains](https://www.jetbrains.com/) for providing free open source licenses! Programmer productivity is boosted!
 
-[![https://algeria20.com/wp-content/uploads/2017/11/jet.png](https://algeria20.com/wp-content/uploads/2017/11/jet.png)](http://www.jetbrains.com)
+![JetBrains logo](logo/jetbrains.png)
