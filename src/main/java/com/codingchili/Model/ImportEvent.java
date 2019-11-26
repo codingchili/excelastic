@@ -26,7 +26,7 @@ public class ImportEvent {
     private FileParser parser;
     private Boolean clearExisting;
     private String mapping;
-    private Optional<String> pipeline;
+    private String pipeline;
     private String index;
     private String uploadId;
     private int offset;
@@ -140,11 +140,11 @@ public class ImportEvent {
     }
 
     public Optional<String> getPipeline() {
-        return pipeline;
+        return Optional.ofNullable(pipeline);
     }
 
     public ImportEvent setPipeline(String pipeline) {
-        this.pipeline = Optional.ofNullable(pipeline);
+        this.pipeline = pipeline;
         return this;
     }
     
