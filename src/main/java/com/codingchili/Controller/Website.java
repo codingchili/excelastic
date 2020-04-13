@@ -127,6 +127,10 @@ public class Website extends AbstractVerticle {
 
             if (iterator.hasNext()) {
                 MultiMap params = context.request().params();
+                if (Configuration.isIndexLocked()) {
+                	params.add(INDEX, Configuration.getDefaultIndex());
+                }
+                        
                 logger.info("Receiving uploaded file with request id " + params.get(UPLOAD_ID));
                 FileUpload upload = context.fileUploads().iterator().next();
 
