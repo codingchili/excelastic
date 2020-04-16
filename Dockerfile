@@ -22,6 +22,7 @@ ENV default_index excelastic
 ENV es_authentication false
 ENV username root
 ENV password root
+ENV java_opts ""
 
 EXPOSE 8080:8080/tcp
 

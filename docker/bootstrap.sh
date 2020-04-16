@@ -1,1 +1,1 @@
-envsubst < configuration_template.json > configuration.json && java -jar excelastic.jar
+envsubst < configuration_template.json > configuration.json && java $java_opts -jar excelastic.jar
