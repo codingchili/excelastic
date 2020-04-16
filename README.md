@@ -89,6 +89,11 @@ Specify a path to the truststore when starting excelastic,
 java -Djavax.net.ssl.trustStore="path/to/mytruststore.jks" -jar excelastic.jar
 ```
 
+Or if using Docker, with /opt/excelastic/mytruststore.jks as a volume
+```console
+-e java_opts="-Djavax.net.ssl.trustStore='/opt/excelastic/truststore.jks'" --volume ./mytruststore.jks:/opt/excelastic/truststore.jks
+```
+
 ##### Don't have the certificate?
 No worries, it can be retrieved using a web browser, browse to <host>:9200 and inspect the certificate from the address bar.
   
