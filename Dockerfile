@@ -9,7 +9,7 @@ MAINTAINER codingchili@github
 RUN mkdir -p /opt/excelastic
 COPY docker/configuration_template.json /opt/excelastic
 COPY docker/bootstrap.sh /opt/excelastic
-COPY excelastic-*.jar /opt/excelastic/excelastic.jar
+COPY build/libs/excelastic-*.jar /opt/excelastic/excelastic.jar
 RUN chmod +x /opt/excelastic/bootstrap.sh && \
     apk add gettext
 
