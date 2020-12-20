@@ -5,6 +5,8 @@ MAINTAINER codingchili@github
 # run mvn clean package to build the jar file.
 # to build the docker image run: docker build .
 
+# to push the image
+# docker tag <imageid> <user>/excelastic:<version>
 
 RUN mkdir -p /opt/excelastic
 COPY docker/configuration_template.json /opt/excelastic
