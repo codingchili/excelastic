@@ -32,6 +32,16 @@ public class TestDataType {
         Assert.assertEquals(TestDataType.<String>bytes("meow"), "meow");
     }
 
+    @Test
+    public void numericAsFloat() {
+        Assert.assertEquals(DataTypes.parseNumeric(3.14), 3.14d);
+    }
+
+    @Test
+    public void numericAsInt() {
+        Assert.assertEquals(DataTypes.parseNumeric(3.0), 3);
+    }
+
     @SuppressWarnings("unchecked")
     private static <T> T bytes(String string) {
         return (T) DataTypes.parseBytes(string.getBytes(StandardCharsets.UTF_8));

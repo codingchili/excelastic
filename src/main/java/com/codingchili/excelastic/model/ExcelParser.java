@@ -244,7 +244,7 @@ public class ExcelParser implements FileParser {
                         if (DateUtil.isCellDateFormatted(cell)) {
                             value = cell.getDateCellValue().toInstant().toString();
                         } else {
-                            value = cell.getNumericCellValue();
+                            value = DataTypes.parseNumeric(cell.getNumericCellValue());
                         }
                         break;
                 }

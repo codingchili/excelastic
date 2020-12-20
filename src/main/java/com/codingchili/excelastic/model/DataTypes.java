@@ -43,4 +43,16 @@ public class DataTypes {
             return value;
         }
     }
+
+    /**
+     * @param numericCellValue parameter to convert to either double or int.
+     * @return an integer or float object, depending on if the given param has decimal value > 0.
+     */
+    public static Object parseNumeric(Double numericCellValue) {
+        if (numericCellValue - numericCellValue.intValue() > 0.0f) {
+            return numericCellValue;
+        } else {
+            return numericCellValue.intValue();
+        }
+    }
 }
