@@ -5,8 +5,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -54,6 +53,7 @@ public class TestParser {
         testParseFile(context, TEST_XLSX_FILE);
     }
 
+    @Ignore("Google docs has dropped XLS exports.")
     @Test
     public void testParse2007(TestContext context) throws IOException {
         testParseFile(context, TEST_XLS_FILE);
@@ -139,7 +139,7 @@ public class TestParser {
 
             @Override
             public void onError(Throwable throwable) {
-
+                throw new RuntimeException(throwable);
             }
 
             @Override
@@ -148,13 +148,16 @@ public class TestParser {
 
                 for (int i = 0; i < list.size(); i++) {
                     JsonObject json = list.getJsonObject(i);
-                    context.assertTrue(json.containsKey("Column 1"));
-                    context.assertTrue(json.containsKey("Column 2"));
-                    context.assertTrue(json.containsKey("Column 3"));
+                    context.assertTrue(json.containsKey("name"));
+                    context.assertTrue(json.containsKey("flag"));
+                    context.assertTrue(json.containsKey("integer"));
+                    context.assertTrue(json.containsKey("float"));
 
-                    context.assertEquals("cell " + (ROW_OFFSET + 1 + i) + "." + 1, json.getString("Column 1"));
-                    context.assertEquals("cell " + (ROW_OFFSET + 1 + i) + "." + 2, json.getString("Column 2"));
-                    context.assertEquals("cell " + (ROW_OFFSET + 1 + i) + "." + 3, json.getString("Column 3"));
+                    int position = i + 1;
+                    context.assertEquals(json.getString("name"), String.format("test_%d", i));
+                    context.assertEquals(json.getBoolean("flag"), position % 2 == 0);
+                    context.assertEquals(json.getInteger("integer"), position * 2);
+                    context.assertEquals(json.getFloat("float"), position * 0.5f);
                 }
                 parser.free();
             }

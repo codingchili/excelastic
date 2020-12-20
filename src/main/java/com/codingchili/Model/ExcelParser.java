@@ -232,9 +232,12 @@ public class ExcelParser implements FileParser {
             Object value = null;
 
             if (cell != null) {
-                switch (cell.getCellTypeEnum()) {
+                switch (cell.getCellType()) {
+                    case BOOLEAN:
+                        value = cell.getBooleanCellValue();
+                        break;
                     case STRING:
-                        value = formatter.formatCellValue(cell);
+                        value = DataTypes.parseString(formatter.formatCellValue(cell));
                         break;
                     case NUMERIC:
                         if (DateUtil.isCellDateFormatted(cell)) {

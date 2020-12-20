@@ -10,8 +10,6 @@ import java.nio.*;
 import java.nio.channels.FileChannel;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
 
 /**
  * @author Robin Duda
@@ -151,7 +149,7 @@ public class CSVParser implements FileParser {
                 buffer.get(line, 0, read);
                 line[line.length - 1] = '\0';
 
-                json.put(header.next(), parseDatatype(line));
+                json.put(header.next(), DataTypes.parseBytes(line));
             } else {
                 // skip parsing the content - just verify the format.
                 header.next();
@@ -217,37 +215,14 @@ public class CSVParser implements FileParser {
 
         if (!(columnsRead.get() == headers.size())) {
             throw new ParserException(
-                    String.format("Error at row %d, values (%d) does not match headers (%d).",
-                            row + 1, columnsRead.get(), headers.size()));
+                    String.format("Error at row %d/%d, values (%d) does not match headers (%d).",
+                            row + 1, rows, columnsRead.get(), headers.size()));
         } else {
             row++;
         }
 
         // parse json object.
         return json;
-    }
-
-
-    private static final Predicate<String> floatPattern = Pattern.compile("^[0-9]+\\.[0-9]+$").asPredicate();
-    private static final Predicate<String> numberPattern = Pattern.compile("^[0-9]+$").asPredicate();
-    private static final Predicate<String> boolPattern = Pattern.compile("^(true|false)$").asPredicate();
-
-    private Object parseDatatype(byte[] data) {
-        String line = new String(data).trim();
-
-        if (line.length() > 0) {
-            if (numberPattern.test(line)) {
-                return Long.parseLong(line);
-            } else if (floatPattern.test(line)) {
-                return Double.parseDouble(line);
-            } else if (boolPattern.test(line)) {
-                return Boolean.parseBoolean(line);
-            } else {
-                return line;
-            }
-        } else {
-            return line;
-        }
     }
 
     @Override

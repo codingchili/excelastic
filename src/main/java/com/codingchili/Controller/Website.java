@@ -129,8 +129,13 @@ public class Website extends AbstractVerticle {
                 MultiMap params = context.request().params();
                 logger.info("Receiving uploaded file with request id " + params.get(UPLOAD_ID));
                 FileUpload upload = context.fileUploads().iterator().next();
+                ImportEvent event = ImportEvent.fromParams(params);
 
-                parse(upload.uploadedFileName(), params, upload.fileName(), onComplete(context, upload.fileName()));
+                if (Configuration.isIndexLocked()) {
+                    event.setIndex(Configuration.getDefaultIndex());
+                }
+
+                parse(upload.uploadedFileName(), event, upload.fileName(), onComplete(context, upload.fileName()));
             } else {
                 context.put(MESSAGE, NO_FILE_WAS_UPLOADED);
                 context.reroute(ERROR);
@@ -143,14 +148,13 @@ public class Website extends AbstractVerticle {
      *
      * @param context  the routing context the upload was initiated from.
      * @param fileName the file name of the file that was uplaoded.
-     * @return a future to be completed when {@link #parse(String, MultiMap, String, Future)}  completes}.
+     * @return a future to be completed when {@link #parse(String, ImportEvent, String, Future)}  completes}.
      */
     private Future<Integer> onComplete(RoutingContext context, String fileName) {
         // when the file has been read from disk, parsed and imported.
         return Future.<Integer>future().setHandler(result -> {
             if (result.succeeded()) {
                 String index = getIndexFromRequest(context.request());
-
 
                 logger.info(String.format("Imported file '%s' successfully into '%s'.", fileName, index));
 
@@ -178,15 +182,14 @@ public class Website extends AbstractVerticle {
      * for elasticsearch to complete indexing.
      *
      * @param uploadedFileName the actual file on disk that contains the uploaded file.
-     * @param params           upload parameters
+     * @param event           upload parameters
      * @param fileName         the name of the uploaded file
      * @param future           callback on completed parse + indexing.
      */
-    private void parse(String uploadedFileName, MultiMap params, String fileName, Future<Integer> future) {
+    private void parse(String uploadedFileName, ImportEvent event, String fileName, Future<Integer> future) {
         vertx.executeBlocking(blocking -> {
             FileParser parser = ParserFactory.getByFilename(fileName);
             try {
-                ImportEvent event = ImportEvent.fromParams(params);
                 parser.setFileData(uploadedFileName, event.getOffset(), fileName);
 
                 sendParsingEvent(event);
