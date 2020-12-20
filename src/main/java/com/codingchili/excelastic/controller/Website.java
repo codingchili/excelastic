@@ -15,6 +15,7 @@ import io.vertx.ext.web.templ.jade.JadeTemplateEngine;
 import java.io.FileNotFoundException;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -57,14 +58,20 @@ public class Website extends AbstractVerticle {
 
         // adds values used in the template to all routes.
         router.route("/*").handler(context -> {
+            BiConsumer<String, String> applyIfUnset = (key, value) -> {
+                if (context.get(key) == null) {
+                    context.put(key, value);
+                }
+            };
             context.put("version", VERSION);
             context.put("esVersion", getElasticVersion());
             context.put("esURL", Configuration.getElasticURL());
             context.put("connected", ElasticWriter.isConnected());
             context.put("tls", Configuration.isElasticTLS());
-            context.put("index", Configuration.getDefaultIndex());
             context.put("indexLocked", Configuration.isIndexLocked());
             context.put("supportedFiles", String.join(", ", ParserFactory.getSupportedExtensions()));
+            applyIfUnset.accept("index", Configuration.getDefaultIndex());
+
             context.next();
         });
 
@@ -155,7 +162,6 @@ public class Website extends AbstractVerticle {
         return Future.<Integer>future().setHandler(result -> {
             if (result.succeeded()) {
                 String index = getIndexFromRequest(context.request());
-
                 logger.info(String.format("Imported file '%s' successfully into '%s'.", fileName, index));
 
                 context.put(INDEX, index);
