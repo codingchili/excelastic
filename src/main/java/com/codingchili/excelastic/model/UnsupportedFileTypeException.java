@@ -1,8 +1,8 @@
-package com.codingchili.Model;
+package com.codingchili.excelastic.model;
 
 /**
  * @author Robin Duda
- *
+ * <p>
  * Thrown when a parser has not been registered for the given file extension.
  */
 public class UnsupportedFileTypeException extends RuntimeException {

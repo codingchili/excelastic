@@ -41,29 +41,55 @@ span.glyphicon {
 }
 
 body {
-    background-image: linear-gradient(to right, #ff7b7b, #7a0098);
+    background-image: linear-gradient(to right, #19d3dc, #003d69);
     height: 100%;
     margin: 0;
+    --accent: #01474c;
+    --link: #00bbab;
+}
+
+#panelheader {
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+
+.btn:hover {
+    background-color: var(--accent) !important;
+    border-color: var(--accent) !important;
+}
+
+.btn-primary {
+    background-color: #6b6b6b !important;
+    border-color: #6b6b6b !important;
+}
+
+.active {
+    background-color: var(--accent) !important;
+    border-color: var(--accent) !important;
 }
 
 html {
     height: 100%;
 }
 
+a {
+    color: var(--link);
+}
+
 a:link {
-    color: #00004a;
+    color: var(--link);
 }
 
 a:visited {
-    color: #00004a;
+    color: var(--link);
 }
 
 a:hover {
-    color: #00bbab;
+    color: #00403b;
     text-decoration: none;
 }
 
 a:active {
-    color: #004236;
+    color: #6b6b6b;
     text-decoration: none;
 }

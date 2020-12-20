@@ -1,4 +1,4 @@
-package com.codingchili.Model;
+package com.codingchili.excelastic.model;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -13,6 +13,7 @@ public class ImportEventCodec implements MessageCodec<ImportEvent, ImportEvent> 
 
     /**
      * Registers this as the default codec for the supported class {@link ImportEvent}.
+     *
      * @param vertx the vertx instance that contains the event bus to register the codec on.
      */
     public static void registerOn(Vertx vertx) {

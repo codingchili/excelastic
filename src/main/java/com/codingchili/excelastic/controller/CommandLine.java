@@ -1,13 +1,13 @@
-package com.codingchili.Controller;
+package com.codingchili.excelastic.controller;
 
-import com.codingchili.Model.*;
-import com.codingchili.logging.ApplicationLogger;
+import com.codingchili.excelastic.logging.ApplicationLogger;
+import com.codingchili.excelastic.model.*;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
 
-import java.io.*;
+import java.io.FileNotFoundException;
 
-import static com.codingchili.Model.ElasticWriter.INDEXING_TIMEOUT;
+import static com.codingchili.excelastic.model.ElasticWriter.INDEXING_TIMEOUT;
 
 /**
  * @author Robin Duda

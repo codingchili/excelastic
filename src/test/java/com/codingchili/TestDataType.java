@@ -1,6 +1,6 @@
 package com.codingchili;
 
-import com.codingchili.Model.DataTypes;
+import com.codingchili.excelastic.model.DataTypes;
 import org.junit.Assert;
 import org.junit.Test;
 

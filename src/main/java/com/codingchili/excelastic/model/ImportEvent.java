@@ -1,12 +1,12 @@
-package com.codingchili.Model;
+package com.codingchili.excelastic.model;
 
 import io.vertx.core.MultiMap;
 
 import java.util.Arrays;
 import java.util.Optional;
 
-import static com.codingchili.Controller.Website.UPLOAD_ID;
-import static com.codingchili.Model.ExcelParser.INDEX;
+import static com.codingchili.excelastic.controller.Website.UPLOAD_ID;
+import static com.codingchili.excelastic.model.ExcelParser.INDEX;
 
 /**
  * @author Robin Duda
@@ -60,7 +60,7 @@ public class ImportEvent {
                 .setMapping(getArgParamValue(args, ARG_MAPPING).orElse("default"))
                 .setPipeline(getArgParamValue(args, ARG_PIPELINE).orElse(""))
                 .setClearExisting(Arrays.asList(args).contains(ARG_CLEAR));
-                
+
     }
 
     private static Optional<String> getArgParamValue(String[] args, String argName) {
@@ -147,5 +147,5 @@ public class ImportEvent {
         this.pipeline = pipeline;
         return this;
     }
-    
+
 }

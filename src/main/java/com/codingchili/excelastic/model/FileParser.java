@@ -1,4 +1,4 @@
-package com.codingchili.Model;
+package com.codingchili.excelastic.model;
 
 import io.vertx.core.json.JsonObject;
 import org.reactivestreams.Publisher;
@@ -16,9 +16,9 @@ public interface FileParser extends Publisher<JsonObject> {
 
     /**
      * @param localFileName a file on disk to be parsed, do not read this into memory
-     *                 as it could be potentially very large.
-     * @param offset   indicates how many empty rows to skip before finding the titles.
-     * @param fileName the original name of the file to be imported.
+     *                      as it could be potentially very large.
+     * @param offset        indicates how many empty rows to skip before finding the titles.
+     * @param fileName      the original name of the file to be imported.
      */
     void setFileData(String localFileName, int offset, String fileName) throws FileNotFoundException;
 

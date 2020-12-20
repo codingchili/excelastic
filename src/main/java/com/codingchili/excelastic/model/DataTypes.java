@@ -1,11 +1,11 @@
-package com.codingchili.Model;
+package com.codingchili.excelastic.model;
 
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
  * Attempts to determine the data type based on the given value.
- *
+ * <p>
  * The supported data types are,
  * Numbers - formatted into a Long.
  * Floating points - formatted into a double.

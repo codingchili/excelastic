@@ -2,6 +2,6 @@ language: java
 sudo: false
 jdk:
   - openjdk11
-script: mvn clean test
+script: ./gradlew build
 notifications:
   email: false

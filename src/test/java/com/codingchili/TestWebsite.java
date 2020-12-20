@@ -1,7 +1,7 @@
 package com.codingchili;
 
-import com.codingchili.Controller.Website;
-import com.codingchili.Model.Configuration;
+import com.codingchili.excelastic.controller.Website;
+import com.codingchili.excelastic.model.Configuration;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;

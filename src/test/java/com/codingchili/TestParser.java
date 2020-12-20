@@ -1,11 +1,12 @@
 package com.codingchili;
 
-import com.codingchili.Model.*;
+import com.codingchili.excelastic.model.*;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import org.junit.*;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -15,7 +16,7 @@ import java.text.DecimalFormat;
 
 /**
  * @author Robin Duda
- *
+ * <p>
  * Tests the parsers.
  */
 @RunWith(VertxUnitRunner.class)
@@ -103,9 +104,9 @@ public class TestParser {
                     DecimalFormat df = new DecimalFormat();
                     df.setMaximumFractionDigits(3);
 
-                    long itemsPerSec = (r  / ((System.currentTimeMillis() + 1) - begin));
+                    long itemsPerSec = (r / ((System.currentTimeMillis() + 1) - begin));
                     float pct = r / (float) ITEMS;
-                    System.out.println("process " + r + "/" + ITEMS + " .. " + itemsPerSec + "/s [" + df.format(pct*100)+ "%]" );
+                    System.out.println("process " + r + "/" + ITEMS + " .. " + itemsPerSec + "/s [" + df.format(pct * 100) + "%]");
                     begin = System.currentTimeMillis();
                 }
             }

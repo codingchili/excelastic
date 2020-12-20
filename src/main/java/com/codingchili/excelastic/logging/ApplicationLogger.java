@@ -1,17 +1,15 @@
-package com.codingchili.logging;
+package com.codingchili.excelastic.logging;
 
-import com.codingchili.Model.*;
+import com.codingchili.excelastic.model.*;
 import io.vertx.core.http.HttpClientResponse;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
-import static com.codingchili.ApplicationLauncher.VERSION;
-import static com.codingchili.Model.ElasticWriter.MAX_BATCH;
+import static com.codingchili.excelastic.ApplicationLauncher.VERSION;
+import static com.codingchili.excelastic.model.ElasticWriter.MAX_BATCH;
 
 /**
  * @author Robin Duda
@@ -167,7 +165,7 @@ public class ApplicationLogger {
      * @param response the http server response from the elasticsearch server.
      * @param total    the total number of items to import.
      * @param event    the import event that the batch belongs to.
-     * @param received  the starting range of the imported items/
+     * @param received the starting range of the imported items/
      * @param percent  the total progress of the import.
      */
     public void onImportedBatch(HttpClientResponse response, ImportEvent event, int total,
@@ -218,6 +216,7 @@ public class ApplicationLogger {
 
     /**
      * On failure to access the desktop/display.
+     *
      * @param e exception thrown when attempting to open the browser.
      */
     public void displayNotAvailable(Exception e) {

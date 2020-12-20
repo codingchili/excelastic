@@ -1,6 +1,6 @@
 package com.codingchili;
 
-import com.codingchili.Model.Configuration;
+import com.codingchili.excelastic.model.Configuration;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.junit.Test;

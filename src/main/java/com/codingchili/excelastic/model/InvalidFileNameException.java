@@ -1,8 +1,8 @@
-package com.codingchili.Model;
+package com.codingchili.excelastic.model;
 
 /**
  * @author Robin Duda
- *
+ * <p>
  * Thrown when an invalid filename has been specified.
  */
 public class InvalidFileNameException extends RuntimeException {

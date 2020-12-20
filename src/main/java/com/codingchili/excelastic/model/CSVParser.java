@@ -1,6 +1,6 @@
-package com.codingchili.Model;
+package com.codingchili.excelastic.model;
 
-import com.codingchili.logging.ApplicationLogger;
+import com.codingchili.excelastic.logging.ApplicationLogger;
 import io.vertx.core.json.JsonObject;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
