@@ -22,7 +22,7 @@ The application requires ElasticSearch as its output.
 
 2. Grab the latest .jar file from [releases](https://github.com/codingchili/parser-excel-elasticsearch/releases).
 
-Tested with ElasticSearch 5.6.2, 6.4.2, 7.0.0-alpha1 and 7.4.0.
+Tested with ElasticSearch 5.6.2, 6.4.2, 7.0.0-alpha1, 7.4.0 and **7.10.1**.
 
 ## Running with docker
 ```console
